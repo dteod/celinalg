@@ -7,6 +7,8 @@
 #include <vector>
 #include <span>
 
+#include "linalg/vector_view.hpp"
+
 namespace linalg {
 
 template<req::number T, size_t Size>
@@ -19,6 +21,12 @@ private:
     inline constexpr static bool heap_allocated = dynamic || sizeof(value_type)*static_size > 16 ;
     using implementation_type = std::conditional_t<heap_allocated, std::vector<value_type>, std::array<value_type, static_size>>;
     implementation_type m_data;
+    using iterator = typename implementation_type::iterator;
+    using const_iterator = typename implementation_type::const_iterator;
+
+    template<typename Element, typename IndexPicker> requires(container<Element> && expression_participant<Element>) friend class detail::linear_element_iterator;
+    inline constexpr decltype(auto) pick(size_t index) const noexcept { return (*this)[index]; }
+    inline constexpr decltype(auto) pick(size_t index) noexcept { return (*this)[index]; }
 public:
     inline constexpr static Vector ones() requires(!dynamic) {
         Vector v;
@@ -55,7 +63,8 @@ public:
     }
 
 
-    constexpr Vector(const value_type(&array)[static_size]) noexcept(!heap_allocated) requires(!dynamic) {
+    template<size_t ArrSize> requires((ArrSize == static_size) && (!dynamic))
+    constexpr Vector(const value_type(&array)[ArrSize]) noexcept(!heap_allocated) {
         if constexpr(heap_allocated) {
             m_data.resize(static_size);
         }
@@ -107,7 +116,7 @@ public:
     {}
 
     template<vector V>
-    constexpr Vector(const V& vec) noexcept(!heap_allocated) requires suitable_vec_expression<Vector, V>{
+    constexpr Vector(const V& vec) noexcept(!heap_allocated) requires suitable_vector_expression<Vector, V>{
         if constexpr(heap_allocated) {
             m_data.resize(vec.size());
         }
@@ -123,7 +132,7 @@ public:
     }
 
     template<vector V>
-    inline constexpr Vector& operator=(const V& vec) noexcept(!heap_allocated) requires suitable_vec_expression<Vector, V>{
+    inline constexpr decltype(auto) operator=(const V& vec) noexcept(!heap_allocated) requires suitable_vector_expression<Vector, V>{
         if constexpr(heap_allocated) {
             m_data.resize(vec.size());
         }
@@ -131,7 +140,7 @@ public:
         return *this;
     }
 
-    inline constexpr Vector& operator=(Vector&& vec) noexcept {
+    inline constexpr decltype(auto) operator=(Vector&& vec) noexcept {
         if constexpr(heap_allocated) {
             m_data.swap(vec.m_data);
         } else {
@@ -140,7 +149,8 @@ public:
         return *this;
     }
 
-    inline constexpr Vector& operator=(const value_type(&array)[static_size]) noexcept(!heap_allocated) requires(!dynamic) {
+    template<size_t ArrSize> requires(ArrSize == static_size)
+    inline constexpr decltype(auto) operator=(const value_type(&array)[ArrSize]) noexcept(!heap_allocated) requires(!dynamic) {
         if constexpr(heap_allocated) {
             m_data.resize(static_size);
         }
@@ -149,7 +159,7 @@ public:
         return *this;
     }
 
-    inline constexpr Vector& operator=(const std::array<value_type, static_size>& array) noexcept(!heap_allocated) requires(!dynamic) {
+    inline constexpr decltype(auto) operator=(const std::array<value_type, static_size>& array) noexcept(!heap_allocated) requires(!dynamic) {
         if constexpr(heap_allocated) {
             m_data.resize(static_size);
         }
@@ -158,7 +168,7 @@ public:
         return *this;
     }
 
-    inline constexpr Vector& operator=(const std::span<value_type, static_size>& span) noexcept(!heap_allocated) requires(!dynamic) {
+    inline constexpr decltype(auto) operator=(const std::span<value_type, static_size>& span) noexcept(!heap_allocated) requires(!dynamic) {
         if constexpr(heap_allocated) {
             m_data.resize(static_size);
         }
@@ -167,7 +177,7 @@ public:
         return *this;
     }
 
-    inline constexpr Vector& operator=(const std::span<value_type>& span) noexcept(!heap_allocated) requires(dynamic) {
+    inline constexpr decltype(auto) operator=(const std::span<value_type>& span) noexcept(!heap_allocated) requires(dynamic) {
         if constexpr(dynamic) {
             m_data.resize(span.size());
         }
@@ -195,6 +205,11 @@ public:
         return m_data.at(index);
     }
 
+    inline constexpr decltype(auto) front() const noexcept { return *begin(); }
+    inline constexpr decltype(auto) front() noexcept { return *begin(); }
+    inline constexpr decltype(auto) back() const noexcept { return *rbegin(); }
+    inline constexpr decltype(auto) back() noexcept { return *rbegin(); }
+
     inline constexpr auto begin() const noexcept { return m_data.begin(); }
     inline constexpr auto rbegin() const noexcept { return m_data.rbegin(); }
     inline constexpr auto cbegin() const noexcept { return m_data.cbegin(); }
@@ -221,7 +236,7 @@ public:
         }
     }
 
-    inline constexpr void resize(size_t size, const value_type& v) requires (dynamic) {
+    inline constexpr void resize(size_t size, const value_type& v) requires(dynamic) {
         if constexpr(dynamic) {
             m_data.resize(size, v);
         }
@@ -230,6 +245,12 @@ public:
     inline constexpr void push_back(value_type v) requires(dynamic) {
         if constexpr(dynamic) {
             m_data.push_back(v);
+        }
+    }
+
+    inline constexpr void emplace(size_t pos, auto&&... args) requires(dynamic) {
+        if constexpr(dynamic) {
+            m_data.emplace(pos, std::forward<decltype(args)>(args)...);
         }
     }
 
@@ -255,11 +276,28 @@ public:
         if constexpr(dynamic) {
             return m_data.empty();
         } else {
+            // Code written here is unreachable, it is only written for the type-system
             return false;
         }
     }
 
-    inline constexpr auto data() const noexcept {
+    inline constexpr auto erase(auto first, auto last) requires(dynamic) {
+        if constexpr(dynamic) {
+            return m_data.erase(first, last);
+        } else {
+            return begin();
+        }
+    }
+
+    inline constexpr auto erase(auto position) requires(dynamic) {
+        if constexpr(dynamic) {
+            return m_data.erase(position);
+        } else {
+            return begin();
+        }
+    }
+
+    inline constexpr auto data() const& noexcept {
         if constexpr(heap_allocated) {
             return std::span<const value_type>(m_data.begin(), m_data.end());
         } else {
@@ -267,7 +305,23 @@ public:
         }
     }
 
-    inline constexpr auto data() noexcept {
+    inline constexpr auto subvector(size_t begin = 0) const& noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    inline constexpr auto subvector(size_t begin, size_t end) const& noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
+
+    inline constexpr auto subvector(size_t begin = 0)& noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    inline constexpr auto subvector(size_t begin, size_t end)& noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
+
+    inline constexpr auto data() & noexcept {
         if constexpr(dynamic) {
             return std::span<value_type>(m_data.begin(), m_data.end());
         } else {
@@ -275,46 +329,106 @@ public:
         }
     }
 
-    template<vector V> inline constexpr Vector& operator+=(const V& v) requires suitable_vec_expression<Vector, V> {
-        *this = *this + v;
-        return *this;
-    } 
+    template<vector V> inline constexpr decltype(auto) operator+=(const V& v) requires suitable_vector_expression<Vector, V> {
+        *this = *this + v; 
+        return *this; 
+    }
 
-    template<vector V> inline constexpr Vector& operator-=(const V& v) requires suitable_vec_expression<Vector, V> {
+    template<vector V> inline constexpr decltype(auto) operator-=(const V& v) requires suitable_vector_expression<Vector, V> {
         *this = *this - v;
         return *this;
     } 
 
-    template<vector V> inline constexpr Vector& operator*=(const V& v) requires suitable_vec_expression<Vector, V> {
+    template<vector V> inline constexpr decltype(auto) operator*=(const V& v) requires suitable_vector_expression<Vector, V> {
         *this = *this * v;
         return *this;
     } 
 
-    template<vector V> inline constexpr Vector& operator/=(const V& v) requires suitable_vec_expression<Vector, V> {
+    template<vector V> inline constexpr decltype(auto) operator/=(const V& v) requires suitable_vector_expression<Vector, V> {
         *this = *this / v;
         return *this;
     } 
 
-    template<vector V> inline constexpr Vector& operator%=(const V& v) requires suitable_vec_expression<Vector, V> {
+    template<vector V> inline constexpr decltype(auto) operator%=(const V& v) requires suitable_vector_expression<Vector, V> {
         *this = *this % v;
         return *this;
     } 
 
-    template<vector V> inline constexpr Vector& operator&=(const V& v) requires suitable_vec_expression<Vector, V> {
+    template<vector V> inline constexpr decltype(auto) operator&=(const V& v) requires suitable_vector_expression<Vector, V> {
         *this = *this & v;
         return *this;
     } 
 
-    template<vector V> inline constexpr Vector& operator|(const V& v) requires suitable_vec_expression<Vector, V> {
+    template<vector V> inline constexpr decltype(auto) operator|=(const V& v) requires suitable_vector_expression<Vector, V> {
         *this = *this | v;
         return *this;
     } 
 
-    template<vector V> inline constexpr Vector& operator^ (const V& v) requires suitable_vec_expression<Vector, V> {
+    template<vector V> inline constexpr decltype(auto) operator^=(const V& v) requires suitable_vector_expression<Vector, V> {
         *this = *this ^ v;
         return *this;
+    }
+
+    inline constexpr decltype(auto) operator+=(value_type v) {
+        *this = *this + v;
+        return *this;
     } 
+
+    inline constexpr decltype(auto) operator-=(value_type v) {
+        *this = *this - v;
+        return *this;
+    } 
+
+    inline constexpr decltype(auto) operator*=(value_type v) {
+        *this = *this * v;
+        return *this;
+    } 
+
+    inline constexpr decltype(auto) operator/=(value_type v) {
+        *this = *this / v;
+        return *this;
+    } 
+
+    inline constexpr decltype(auto) operator%=(value_type v) {
+        *this = *this % v;
+        return *this;
+    } 
+
+    inline constexpr decltype(auto) operator&=(value_type v) {
+        *this = *this & v;
+        return *this;
+    } 
+
+    inline constexpr decltype(auto) operator|=(value_type v) {
+        *this = *this | v;
+        return *this;
+    } 
+
+    inline constexpr decltype(auto) operator^=(value_type v) {
+        *this = *this ^ v;
+        return *this;
+    }
 };
+
+namespace detail {
+    inline constexpr auto begin(vector auto&& v) noexcept { return std::forward<decltype(v)>(v).begin(); }
+    inline constexpr auto end(vector auto&& v) noexcept { return std::forward<decltype(v)>(v).end(); }
+    inline constexpr auto rbegin(vector auto&& v) noexcept { return std::forward<decltype(v)>(v).rbegin(); }
+    inline constexpr auto rend(vector auto&& v) noexcept { return std::forward<decltype(v)>(v).rend(); }
+    inline constexpr auto cbegin(const vector auto& v) noexcept { return std::forward<decltype(v)>(v).cbegin(); }
+    inline constexpr auto cend(const vector auto& v) noexcept { return std::forward<decltype(v)>(v).cend(); }
+    inline constexpr auto crbegin(const vector auto& v) noexcept { return std::forward<decltype(v)>(v).crbegin(); }
+    inline constexpr auto crend(const vector auto& v) noexcept { return std::forward<decltype(v)>(v).crend(); }
+}
+
+inline constexpr auto begin(vector auto&& v) noexcept { return detail::begin(std::forward<decltype(v)>(v)); }
+inline constexpr auto end(vector auto&& v) noexcept { return detail::end(std::forward<decltype(v)>(v)); }
+inline constexpr auto rbegin(vector auto&& v) noexcept { return detail::rbegin(std::forward<decltype(v)>(v)); }
+inline constexpr auto rend(vector auto&& v) noexcept { return detail::rend(std::forward<decltype(v)>(v)); }
+inline constexpr auto cbegin(const vector auto& v) noexcept { return detail::cbegin(std::forward<decltype(v)>(v)); }
+inline constexpr auto cend(const vector auto& v) noexcept { return detail::cend(std::forward<decltype(v)>(v)); }
+inline constexpr auto crbegin(const vector auto& v) noexcept { return detail::crbegin(std::forward<decltype(v)>(v)); }
+inline constexpr auto crend(const vector auto& v) noexcept { return detail::crend(std::forward<decltype(v)>(v)); }
 
 template<req::number T>
 using DynamicVector = Vector<T, 0>;
@@ -331,12 +445,30 @@ template<typename T, size_t N> Vector(std::span<T, N>) -> Vector<T, N>;
 template<typename T, size_t N> Vector(std::span<const T, N>) -> Vector<T, N>;
 template<typename T>           Vector(std::span<T>) -> DynamicVector<T>;
 
-template<vector V1, vector V2> requires suitable_cross_product_expression<V1, V2>
+template<vector V1, vector V2> requires suitable_vector_cross_product_expression<V1, V2>
 inline constexpr auto cprod(const V1&, const V2&) noexcept;
 
-template<vector V1, vector V2> requires suitable_vec_expression<V1, V2>
+template<vector V1, vector V2> requires suitable_vector_expression<V1, V2>
 inline constexpr auto sprod(const V1&, const V2&) noexcept;
 
+template<vector V1, vector V2> requires vectors_same_value_type<V1, V2>
+inline constexpr auto concat(V1& v1, V2& v2) noexcept;
+
+template<typename T> using Vec2 = Vector<T, 2>;
+template<typename T> using Vec3 = Vector<T, 3>;
+template<typename T> using Vec4 = Vector<T, 4>;
+template<size_t N> using IntVec = Vector<int, N>;
+template<size_t N> using FloatVec = Vector<float, N>;
+template<size_t N> using DoubleVec = Vector<double, N>;
+using IntVec2 = IntVec<2>;
+using IntVec3 = IntVec<3>;
+using IntVec4 = IntVec<4>;
+using FloatVec2 = FloatVec<2>;
+using FloatVec3 = FloatVec<3>;
+using FloatVec4 = FloatVec<4>;
+using DoubleVec2 = DoubleVec<2>;
+using DoubleVec3 = DoubleVec<3>;
+using DoubleVec4 = DoubleVec<4>;
 
 }
 

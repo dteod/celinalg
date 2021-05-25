@@ -11,9 +11,13 @@ target_include_directories(linalg
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/private
 )
 target_compile_features(linalg PUBLIC cxx_std_20)
+
+target_compile_definitions(linalg PUBLIC
+    $<$<AND:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_VERSION:12.0.0>>:LINALG_USE_CONSTEXPR_VECTOR_COMPILER=1>
+)
+target_compile_options(linalg PUBLIC -fconcepts-diagnostics-depth=5)
 target_link_libraries(linalg PUBLIC utils)
 
-add_executable(vector ${CMAKE_CURRENT_SOURCE_DIR}/helpers/vector.cpp)
-target_link_libraries(vector PRIVATE linalg)
-add_executable(matrix ${CMAKE_CURRENT_SOURCE_DIR}/helpers/matrix.cpp)
-target_link_libraries(matrix PRIVATE linalg)
+create_test(vector)
+create_test(matrix)
+create_test(mat)
