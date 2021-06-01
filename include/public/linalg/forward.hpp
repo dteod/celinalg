@@ -103,7 +103,7 @@ concept suitable_same_size_expression = suitable_matrix_same_size_expression<X, 
 namespace detail {
 
 struct default_index_picker {
-    inline constexpr static size_t pick(const auto&, size_t index) {
+    inline constexpr static size_t pick(const auto&, size_t index) noexcept {
         return index;
     } 
 };
@@ -115,7 +115,7 @@ class linear_element_iterator {
     template<container Tmp> friend linear_element_iterator<Tmp> operator+(ssize_t, linear_element_iterator<Tmp>&);
     template<container Tmp> friend const linear_element_iterator<Tmp> operator+(ssize_t, const linear_element_iterator<Tmp>&);
 public:
-    constexpr linear_element_iterator(Element& e, ssize_t index): e{e}, m_index{index} {}
+    constexpr linear_element_iterator(Element& e, ssize_t index) noexcept: e{e}, m_index{index} {}
     inline constexpr decltype(auto) operator*() const noexcept { return e.pick(IndexPicker::pick(e, m_index)); }
     inline constexpr decltype(auto) operator[](ssize_t index) const noexcept { return e.pick(IndexPicker::pick(e, m_index + index)); }
 

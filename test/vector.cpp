@@ -535,19 +535,74 @@ TEMPLATE_TEST_CASE("vector accumulate", "[linalg][vector]", TYPE_PARAMETER_LIST)
     REQUIRE(std::accumulate(v.begin(), v.end(), TestType(0)) == TestType(55));
 }
 
-TEST_CASE("std mathematical functions", "[linalg][vector]") {
-    Vector<int, 10> v;
-    std::iota(v.begin(), v.end(), -5);
+TEST_CASE("math functions - abs/fabs", "[linalg][vector]") {
+    Vector<int, 10> v{1, 2, 5, -6, -1, 0, 0, 4, -4, 8};
+    {
+        auto fcn = abs(v);
+        REQUIRE(fcn[0] == 1);
+        REQUIRE(fcn[1] == 2);
+        REQUIRE(fcn[2] == 5);
+        REQUIRE(fcn[3] == 6);
+        REQUIRE(fcn[4] == 1);
+        REQUIRE(fcn[5] == 0);
+        REQUIRE(fcn[6] == 0);
+        REQUIRE(fcn[7] == 4);
+        REQUIRE(fcn[8] == 4);
+        REQUIRE(fcn[9] == 8);
+    }
+    {
+        auto fcn = fabs(v);
+        REQUIRE(fcn[0] == 1);
+        REQUIRE(fcn[1] == 2);
+        REQUIRE(fcn[2] == 5);
+        REQUIRE(fcn[3] == 6);
+        REQUIRE(fcn[4] == 1);
+        REQUIRE(fcn[5] == 0);
+        REQUIRE(fcn[6] == 0);
+        REQUIRE(fcn[7] == 4);
+        REQUIRE(fcn[8] == 4);
+        REQUIRE(fcn[9] == 8);
+    }
+    
+}
 
-    auto abs_v = abs(v);
-    REQUIRE(abs_v[0] == 5);
-    REQUIRE(abs_v[1] == 4);
-    REQUIRE(abs_v[2] == 3);
-    REQUIRE(abs_v[3] == 2);
-    REQUIRE(abs_v[4] == 1);
-    REQUIRE(abs_v[5] == 0);
-    REQUIRE(abs_v[6] == 1);
-    REQUIRE(abs_v[7] == 2);
-    REQUIRE(abs_v[8] == 3);
-    REQUIRE(abs_v[9] == 4);
+TEST_CASE("math functions - fmod", "[linalg][vector]") {
+    Vector<double, 5> v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.};
+
+    auto fcn = fmod(v1, v2);
+    REQUIRE(fcn[0] == fmod(v1[0], v2[0]));
+    REQUIRE(fcn[1] == fmod(v1[1], v2[1]));
+    REQUIRE(fcn[2] == fmod(v1[2], v2[2]));
+    REQUIRE(fcn[3] == fmod(v1[3], v2[3]));
+    REQUIRE(fcn[4] == fmod(v1[4], v2[4]));
+}
+
+TEST_CASE("math functions - remainder", "[linalg][vector]") {
+    Vector<double, 5> v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.};
+
+    auto fcn = remainder(v1, v2);
+    REQUIRE(fcn[0] == remainder(v1[0], v2[0]));
+    REQUIRE(fcn[1] == remainder(v1[1], v2[1]));
+    REQUIRE(fcn[2] == remainder(v1[2], v2[2]));
+    REQUIRE(fcn[3] == remainder(v1[3], v2[3]));
+    REQUIRE(fcn[4] == remainder(v1[4], v2[4]));
+}
+
+TEST_CASE("math functions - remquo", "[linalg][vector]") {
+    Vector<double, 5> v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.};
+    std::array<int, 5> arr{};
+    std::array<int*, 5> pArr;
+    std::transform(arr.begin(), arr.end(), pArr.begin(), [](int& v) { return &v; }); 
+
+    auto fcn = remquo(v1, v2, pArr);
+
+    int buffer = 13094948;
+    auto check = [&](int i) {
+        fcn[i];
+        remquo(v1[i], v2[i], &buffer);
+        REQUIRE(arr[i] == buffer); 
+    };
+    for(size_t i = 0; i != pArr.size(); ++i) {
+        check(i);
+    }
 }

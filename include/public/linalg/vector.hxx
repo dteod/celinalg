@@ -29,9 +29,9 @@ private:
     inline constexpr decltype(auto) pick(size_t index) noexcept { return (*this)[index]; }
 public:
     using iterator = detail::linear_element_iterator<VectorExpression<op, V1, V2>>;
-    constexpr VectorExpression(const V1& v1, const V2& v2): v1{v1}, v2{v2} {}
+    constexpr VectorExpression(const V1& v1, const V2& v2) noexcept: v1{v1}, v2{v2} {}
 
-    inline constexpr size_t size() const noexcept(static_vector<V1> && static_vector<V2>) {
+    inline constexpr size_t size() const noexcept(static_vector<V1> && static_vector<V2> && noexcept(v1.size())) {
         if constexpr(dynamic_vector<V1> || dynamic_vector<V2>) {
             if(v1.size() != v2.size()) {
                 throw std::length_error("size mismatch");
@@ -48,26 +48,25 @@ public:
         return expression_operator<op>::call(v1.at(index), v2.at(index));
     }
 
-    inline constexpr auto begin() const { return iterator(*this, 0); }
-    inline constexpr auto cbegin() const { return iterator(*this, 0); }
-    inline constexpr auto rbegin() const { return std::reverse_iterator(iterator(*this, 0)); }
-    inline constexpr auto crbegin() const { return std::reverse_iterator(iterator(*this, 0)); }
-    inline constexpr auto end() const { return iterator(*this, size()); }
-    inline constexpr auto cend() const { return iterator(*this, size()); }
-    inline constexpr auto rend() const { return std::reverse_iterator(iterator(*this, size())); }
-    inline constexpr auto crend() const { return std::reverse_iterator(iterator(*this, size())); }
+    inline constexpr auto begin() const noexcept { return iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(iterator(*this, size())); }
 
-    inline constexpr auto begin() { return iterator(*this, 0); }
-    inline constexpr auto rbegin() { return std::reverse_iterator(iterator(*this, 0)); }
-    inline constexpr auto end() { return iterator(*this, size()); }
-    inline constexpr auto rend() { return std::reverse_iterator(iterator(*this, size())); }
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
 
-
-    inline constexpr auto subvector(size_t begin = 0) const& noexcept {
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
         return detail::VectorView(*this, begin);
     }
 
-    inline constexpr auto subvector(size_t begin, size_t end) const& noexcept {
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
         return detail::VectorView(*this, begin, end);
     }
 };
@@ -104,19 +103,27 @@ public:
         return expression_operator<op>::call(vec.at(index), s);
     }
 
-    inline constexpr auto begin() const { return const_iterator(*this, 0); }
-    inline constexpr auto cbegin() const { return const_iterator(*this, 0); }
-    inline constexpr auto rbegin() const { return std::reverse_iterator(const_iterator(*this, 0)); }
-    inline constexpr auto crbegin() const { return std::reverse_iterator(const_iterator(*this, 0)); }
-    inline constexpr auto end() const { return const_iterator(*this, size()); }
-    inline constexpr auto cend() const { return const_iterator(*this, size()); }
-    inline constexpr auto rend() const { return std::reverse_iterator(const_iterator(*this, size())); }
-    inline constexpr auto crend() const { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
 
-    inline constexpr auto begin() { return iterator(*this, 0); }
-    inline constexpr auto rbegin() { return std::reverse_iterator(iterator(*this, 0)); }
-    inline constexpr auto end() { return iterator(*this, size()); }
-    inline constexpr auto rend() { return std::reverse_iterator(iterator(*this, size())); }
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
 };
 
 template<Operation op, req::number Scalar, vector Vec>
@@ -146,19 +153,27 @@ public:
         return expression_operator<op>::call(s, vec.at(index));
     }
 
-    inline constexpr auto begin() const { return const_iterator(*this, 0); }
-    inline constexpr auto cbegin() const { return const_iterator(*this, 0); }
-    inline constexpr auto rbegin() const { return std::reverse_iterator(const_iterator(*this, 0)); }
-    inline constexpr auto crbegin() const { return std::reverse_iterator(const_iterator(*this, 0)); }
-    inline constexpr auto end() const { return const_iterator(*this, size()); }
-    inline constexpr auto cend() const { return const_iterator(*this, size()); }
-    inline constexpr auto rend() const { return std::reverse_iterator(const_iterator(*this, size())); }
-    inline constexpr auto crend() const { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
 
-    inline constexpr auto begin() { return iterator(*this, 0); }
-    inline constexpr auto rbegin() { return std::reverse_iterator(iterator(*this, 0)); }
-    inline constexpr auto end() { return iterator(*this, size()); }
-    inline constexpr auto rend() { return std::reverse_iterator(iterator(*this, size())); }
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
 };
 
 template<vector V1, vector V2> requires suitable_vector_expression<V1, V2>
@@ -170,7 +185,6 @@ public:
     using value_type = traits::common_type_t<typename V1::value_type, typename V2::value_type>;
     
     constexpr VectorScalarProduct(const V1& v1, const V2& v2) noexcept: v1{v1}, v2{v2} {}
-    constexpr ~VectorScalarProduct() {}
     
     inline constexpr operator value_type() const noexcept(!(dynamic_vector<V1> || dynamic_vector<V2>)) {
         return get();
@@ -222,19 +236,27 @@ public:
         return out;
     }
 
-    inline constexpr auto begin() const { return const_iterator(*this, 0); }
-    inline constexpr auto cbegin() const { return const_iterator(*this, 0); }
-    inline constexpr auto rbegin() const { return std::reverse_iterator(const_iterator(*this, 0)); }
-    inline constexpr auto crbegin() const { return std::reverse_iterator(const_iterator(*this, 0)); }
-    inline constexpr auto end() const { return const_iterator(*this, size()); }
-    inline constexpr auto cend() const { return const_iterator(*this, size()); }
-    inline constexpr auto rend() const { return std::reverse_iterator(const_iterator(*this, size())); }
-    inline constexpr auto crend() const { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
 
-    inline constexpr auto begin() { return iterator(*this, 0); }
-    inline constexpr auto rbegin() { return std::reverse_iterator(iterator(*this, 0)); }
-    inline constexpr auto end() { return iterator(*this, size()); }
-    inline constexpr auto rend() { return std::reverse_iterator(iterator(*this, size())); }
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+    
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
 };
 
 template<vector V1, vector V2> requires vectors_same_value_type<V1, V2>
@@ -250,26 +272,34 @@ public:
     using value_type = typename V1::value_type;
     using iterator = detail::linear_element_iterator<VectorConcatenation<V1, V2>>;
 
-    constexpr VectorConcatenation(V1& v1, V2& v2): v1{v1}, v2{v2} {}
+    constexpr VectorConcatenation(V1& v1, V2& v2) noexcept: v1{v1}, v2{v2} {}
 
     inline constexpr size_t size() const noexcept { return v1.size() + v2.size(); }
 
     inline constexpr decltype(auto) operator[](size_t index) const noexcept { return pick(index); }
     inline constexpr decltype(auto) at(size_t index) const { return pick(index); }
 
-    inline constexpr auto begin() const { return const_iterator(*this, 0); }
-    inline constexpr auto cbegin() const { return const_iterator(*this, 0); }
-    inline constexpr auto rbegin() const { return std::reverse_iterator(const_iterator(*this, 0)); }
-    inline constexpr auto crbegin() const { return std::reverse_iterator(const_iterator(*this, 0)); }
-    inline constexpr auto end() const { return const_iterator(*this, size()); }
-    inline constexpr auto cend() const { return const_iterator(*this, size()); }
-    inline constexpr auto rend() const { return std::reverse_iterator(const_iterator(*this, size())); }
-    inline constexpr auto crend() const { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
 
-    inline constexpr auto begin() { return iterator(*this, 0); }
-    inline constexpr auto rbegin() { return std::reverse_iterator(iterator(*this, 0)); }
-    inline constexpr auto end() { return iterator(*this, size()); }
-    inline constexpr auto rend() { return std::reverse_iterator(iterator(*this, size())); }
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
 };
 
 template<vector V, std::invocable<typename V::value_type> F>
@@ -285,26 +315,34 @@ private:
     inline constexpr decltype(auto) pick(size_t index) noexcept { return F{}(v[index]); }
 public:
     using iterator = detail::linear_element_iterator<UnaryVectorFunction>;
-    constexpr UnaryVectorFunction(V& v): v{v} {}
+    constexpr UnaryVectorFunction(V& v) noexcept: v{v} {}
 
-    inline constexpr size_t size() const noexcept { return v.size(); }
+    inline constexpr size_t size() const noexcept(noexcept(v.size())) { return v.size(); }
 
     inline constexpr decltype(auto) operator[](size_t index) const noexcept { return pick(index); }
     inline constexpr decltype(auto) at(size_t index) const { if(index < v.size()) return pick(index); else throw std::out_of_range("UnaryVectorFunction"); }
 
-    inline constexpr auto begin() const { return const_iterator(*this, 0); }
-    inline constexpr auto cbegin() const { return const_iterator(*this, 0); }
-    inline constexpr auto rbegin() const { return std::reverse_iterator(const_iterator(*this, 0)); }
-    inline constexpr auto crbegin() const { return std::reverse_iterator(const_iterator(*this, 0)); }
-    inline constexpr auto end() const { return const_iterator(*this, size()); }
-    inline constexpr auto cend() const { return const_iterator(*this, size()); }
-    inline constexpr auto rend() const { return std::reverse_iterator(const_iterator(*this, size())); }
-    inline constexpr auto crend() const { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
 
-    inline constexpr auto begin() { return iterator(*this, 0); }
-    inline constexpr auto rbegin() { return std::reverse_iterator(iterator(*this, 0)); }
-    inline constexpr auto end() { return iterator(*this, size()); }
-    inline constexpr auto rend() { return std::reverse_iterator(iterator(*this, size())); }
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
 };
 
 template<vector V1, vector V2, std::invocable<typename V1::value_type, typename V2::value_type> F> requires suitable_vector_expression<V1, V2>
@@ -321,25 +359,39 @@ private:
     inline constexpr decltype(auto) pick(size_t index) noexcept { return F{}(v1[index], v2[index]); }
 public:
     using iterator = detail::linear_element_iterator<BinaryVectorFunction>;
-    constexpr BinaryVectorFunction(const V1& v1, const V2& v2): v1{v1}, v2{v2} {}
+    constexpr BinaryVectorFunction(const V1& v1, const V2& v2) noexcept: v1{v1}, v2{v2} {}
 
-    inline constexpr size_t size() const { if(v1.size() != v2.size()) throw std::runtime_error("BinaryVectorFunction: size mismatch"); return v1.size(); }
+    inline constexpr size_t size() const noexcept(!(dynamic_vector<V1> || dynamic_vector<V2>)) { 
+        if constexpr(dynamic_vector<V1> || dynamic_vector<V2>) {
+            if(v1.size() != v2.size()) 
+                throw std::runtime_error("BinaryVectorFunction: size mismatch"); 
+        }
+        return v1.size(); 
+    }
     inline constexpr decltype(auto) operator[](size_t index) const noexcept { return pick(index); }
     inline constexpr decltype(auto) at(size_t index) const { if(index < v1.size()) return pick(index); else throw std::out_of_range("BinaryVectorFunction"); }
 
-    inline constexpr auto begin() const { return const_iterator(*this, 0); }
-    inline constexpr auto cbegin() const { return const_iterator(*this, 0); }
-    inline constexpr auto rbegin() const { return std::reverse_iterator(const_iterator(*this, 0)); }
-    inline constexpr auto crbegin() const { return std::reverse_iterator(const_iterator(*this, 0)); }
-    inline constexpr auto end() const { return const_iterator(*this, size()); }
-    inline constexpr auto cend() const { return const_iterator(*this, size()); }
-    inline constexpr auto rend() const { return std::reverse_iterator(const_iterator(*this, size())); }
-    inline constexpr auto crend() const { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
 
-    inline constexpr auto begin() { return iterator(*this, 0); }
-    inline constexpr auto rbegin() { return std::reverse_iterator(iterator(*this, 0)); }
-    inline constexpr auto end() { return iterator(*this, size()); }
-    inline constexpr auto rend() { return std::reverse_iterator(iterator(*this, size())); }
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
 };
 
 template<vector V, req::number Scalar, std::invocable<typename V::value_type, Scalar> F>
@@ -356,25 +408,33 @@ private:
     inline constexpr decltype(auto) pick(size_t index) noexcept { return F{}(v[index], s); }
 public:
     using iterator = detail::linear_element_iterator<VectorScalarFunction>;
-    constexpr VectorScalarFunction(const V& v1, Scalar s): v{v}, s{s} {}
+    constexpr VectorScalarFunction(const V& v1, Scalar s) noexcept: v{v}, s{s} {}
 
     inline constexpr size_t size() const noexcept(noexcept(v.size())) { return v.size(); }
     inline constexpr decltype(auto) operator[](size_t index) const noexcept { return pick(index); }
     inline constexpr decltype(auto) at(size_t index) const { if(index < v.size()) return pick(index); else throw std::out_of_range("VectorScalarFunction"); }
 
-    inline constexpr auto begin() const { return const_iterator(*this, 0); }
-    inline constexpr auto cbegin() const { return const_iterator(*this, 0); }
-    inline constexpr auto rbegin() const { return std::reverse_iterator(const_iterator(*this, 0)); }
-    inline constexpr auto crbegin() const { return std::reverse_iterator(const_iterator(*this, 0)); }
-    inline constexpr auto end() const { return const_iterator(*this, size()); }
-    inline constexpr auto cend() const { return const_iterator(*this, size()); }
-    inline constexpr auto rend() const { return std::reverse_iterator(const_iterator(*this, size())); }
-    inline constexpr auto crend() const { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
 
-    inline constexpr auto begin() { return iterator(*this, 0); }
-    inline constexpr auto rbegin() { return std::reverse_iterator(iterator(*this, 0)); }
-    inline constexpr auto end() { return iterator(*this, size()); }
-    inline constexpr auto rend() { return std::reverse_iterator(iterator(*this, size())); }
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
 };
 
 template<req::number Scalar, vector V, std::invocable<Scalar, typename V::value_type> F>
@@ -391,27 +451,138 @@ private:
     inline constexpr decltype(auto) pick(size_t index) noexcept { return F{}(v[index], s); }
 public:
     using iterator = detail::linear_element_iterator<ScalarVectorFunction>;
-    constexpr ScalarVectorFunction(const V& v1, Scalar s): v{v}, s{s} {}
+    constexpr ScalarVectorFunction(const V& v1, Scalar s) noexcept: v{v}, s{s} {}
 
     inline constexpr size_t size() const noexcept(noexcept(v.size())) { return v.size(); }
     inline constexpr decltype(auto) operator[](size_t index) const noexcept { return pick(index); }
     inline constexpr decltype(auto) at(size_t index) const { if(index < v.size()) return pick(index); else throw std::out_of_range("ScalarVectorFunction"); }
 
-    inline constexpr auto begin() const { return const_iterator(*this, 0); }
-    inline constexpr auto cbegin() const { return const_iterator(*this, 0); }
-    inline constexpr auto rbegin() const { return std::reverse_iterator(const_iterator(*this, 0)); }
-    inline constexpr auto crbegin() const { return std::reverse_iterator(const_iterator(*this, 0)); }
-    inline constexpr auto end() const { return const_iterator(*this, size()); }
-    inline constexpr auto cend() const { return const_iterator(*this, size()); }
-    inline constexpr auto rend() const { return std::reverse_iterator(const_iterator(*this, size())); }
-    inline constexpr auto crend() const { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
 
-    inline constexpr auto begin() { return iterator(*this, 0); }
-    inline constexpr auto rbegin() { return std::reverse_iterator(iterator(*this, 0)); }
-    inline constexpr auto end() { return iterator(*this, size()); }
-    inline constexpr auto rend() { return std::reverse_iterator(iterator(*this, size())); }
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
 };
 
+template<vector V1, vector V2, vector V3, std::invocable<typename V1::value_type, typename V2::value_type, typename V3::value_type> F> requires(suitable_vector_expression<V1, V2> && suitable_vector_expression<V1, V3> && suitable_vector_expression<V2, V3>)
+class TernaryVectorFunction {
+public:
+    inline constexpr static bool is_temporary { true };
+    inline constexpr static size_t static_size { dynamic_vector<V1> || dynamic_vector<V2> || dynamic_vector<V3> ? 0 : V1::static_size };
+    using value_type = std::invoke_result_t<F, typename V1::value_type, typename V2::value_type, typename V3::value_type>;
+private:
+    std::conditional_t<V1::is_temporary, V1, V1&> v1;
+    std::conditional_t<V2::is_temporary, V2, V2&> v2;
+    std::conditional_t<V3::is_temporary, V3, V3&> v3;
+    template<typename Element, typename IndexPicker> requires(container<Element> && expression_participant<Element>) friend class detail::linear_element_iterator;
+    inline constexpr decltype(auto) pick(size_t index) const noexcept { return F{}(v1[index], v2[index], v3[index]); }
+    inline constexpr decltype(auto) pick(size_t index) noexcept { return F{}(v1[index], v2[index], v3[index]); }
+public:
+    using iterator = detail::linear_element_iterator<TernaryVectorFunction>;
+    constexpr TernaryVectorFunction(V1& v1, V2& v2, V3& v3) noexcept: v1{v1}, v2{v2}, v3{v3} {}
+
+    inline constexpr size_t size() const noexcept(!(dynamic_vector<V1> || dynamic_vector<V2> || dynamic_vector<V3>)) {
+        if constexpr(dynamic_vector<V1> || dynamic_vector<V2> || dynamic_vector<V3>) {
+            if(v1.size() != v2.size() || v1.size() != v3.size())
+                throw std::runtime_error("TernaryVectorFunction: size mismatch");
+        }
+        return v1.size(); 
+    }
+    inline constexpr decltype(auto) operator[](size_t index) const noexcept { return pick(index); }
+    inline constexpr decltype(auto) at(size_t index) const { if(index < v1.size()) return pick(index); else throw std::out_of_range("TernaryVectorFunction"); }
+
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
+};
+
+template<vector V1, vector V2, typename Container, std::invocable<typename V1::value_type, typename V2::value_type, typename Container::value_type> F> requires suitable_vector_expression<V1, V2>
+class VectorVectorContainerFunction {
+public:
+    inline constexpr static bool is_temporary { true };
+    inline constexpr static size_t static_size { dynamic_vector<V1> || dynamic_vector<V2> ? 0 : V1::static_size };
+    using value_type = std::invoke_result_t<F, typename V1::value_type, typename V2::value_type, typename Container::value_type>;
+private:
+    std::conditional_t<V1::is_temporary, V1, V1&> v1;
+    std::conditional_t<V2::is_temporary, V2, V2&> v2;
+    Container& v3;
+    template<typename Element, typename IndexPicker> requires(container<Element> && expression_participant<Element>) friend class detail::linear_element_iterator;
+    inline constexpr decltype(auto) pick(size_t index) const noexcept { return F{}(v1[index], v2[index], v3[index]); }
+    inline constexpr decltype(auto) pick(size_t index) noexcept { return F{}(v1[index], v2[index], v3[index]); }
+
+    template<typename T> struct is_container_array: std::false_type {};
+    template<typename T, size_t N> struct is_container_array<std::array<T, N>>: std::true_type {};
+    template<typename T> inline constexpr static bool is_container_array_v { is_container_array<T>::value };
+public:
+    constexpr VectorVectorContainerFunction(const V1& v1, const V2& v2, Container& v3) noexcept: v1{v1}, v2{v2}, v3{v3} {}
+    
+    inline constexpr size_t size() const noexcept(!(dynamic_vector<V1> || dynamic_vector<V2>)) {
+        if constexpr(dynamic_vector<V1> || dynamic_vector<V2> || !is_container_array_v<Container>) {
+            if(v1.size() != v2.size() || v1.size() != v3.size())
+                throw std::runtime_error("VectorVectorContainerFunction: size mismatch");
+        }
+        return v1.size(); 
+    }
+    
+    inline constexpr decltype(auto) operator[](size_t index) const noexcept { return pick(index); }
+    inline constexpr decltype(auto) at(size_t index) const { if(index < v1.size()) return pick(index); else throw std::out_of_range("TernaryVectorFunction"); }
+
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
+};
 
 }
 
@@ -458,64 +629,263 @@ template<vector V1, vector V2> requires vectors_same_value_type<V1, V2>
 inline constexpr auto concat(V1& v1, V2& v2) noexcept { return detail::VectorConcatenation(v1, v2); }
 
 
-#define DECLARE_FUNCTION(NAME)                                                                                   \
-namespace detail {                                                                                               \
-    constexpr auto NAME = [](auto&& x) constexpr noexcept { return ::std::NAME(std::forward<decltype(x)>(x)); }; \
-}                                                                                                                \
-template<typename V> constexpr auto NAME(const V& v) noexcept {                                                  \
-    return detail::UnaryVectorFunction<const V, decltype(detail::NAME)>(v);                                      \
-}                                                                                                                \
-
-#define DECLARE_FUNCTION_2(NAME)                                                                                                                         \
-namespace detail {                                                                                                                                       \
-    constexpr auto NAME = [](auto&& x, auto&& y) constexpr noexcept { return ::std::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y)); }; \
-}                                                                                                                                                        \
-constexpr auto NAME(const vector auto& v1, const vector auto& v2) noexcept {                                                                             \
-    return detail::BinaryVectorFunction<const std::decay_t<decltype(v1)>, const std::decay_t<decltype(v2)>, decltype(detail::NAME)>(v1, v2);                     \
-}                                                                                                                                                        \
-template<vector V, std::convertible_to<typename V::value_type> Scalar>                                                                                   \
-constexpr auto NAME(const V& v, Scalar&& scalar) noexcept {                                                                                              \
-    return detail::VectorScalarFunction<const std::decay_t<V>, std::decay_t<Scalar>, decltype(detail::NAME)>{ v, std::forward<Scalar>(scalar) };                 \
-}                                                                                                                                                        \
-template<vector V, std::convertible_to<typename V::value_type> Scalar>                                                                                   \
-constexpr auto NAME(Scalar&& scalar, const V& v) noexcept {                                                                                              \
-    return detail::ScalarVectorFunction<std::decay_t<Scalar>, const std::decay_t<V>, decltype(detail::NAME)>{ std::forward<Scalar>(scalar), v };                 \
+#define LINALG_DECLARE_FUNCTION(NAME)                                                                                           \
+namespace detail {                                                                                                       \
+    inline constexpr auto NAME = [](auto&& x) constexpr noexcept { return ::std::NAME(std::forward<decltype(x)>(x)); };  \
+}                                                                                                                        \
+template<vector V> inline constexpr auto NAME(const V& v) noexcept {                                                     \
+    return detail::UnaryVectorFunction<const V, decltype(detail::NAME)>(v);                                              \
 }
 
-// Basic operations
-// absolute value of a floating point value
-    DECLARE_FUNCTION(abs); 
-    DECLARE_FUNCTION(fabs); 
-// remainder of the floating point division operation
-    DECLARE_FUNCTION_2(fmod);
-// signed remainder of the division operation
-    DECLARE_FUNCTION_2(remainder);
-    DECLARE_FUNCTION_2(remainderf);
-    DECLARE_FUNCTION_2(remainderl);
-// signed remainder as well as the three last bits of the division operation
-    // Unimplemented, requires the third argument to be non-const
-//     DECLARE_FUNCTION_3_ARRAY(remquo);
-//     DECLARE_FUNCTION_3_ARRAY(remquof);
-//     DECLARE_FUNCTION_3_ARRAY(remquol);
-// // fused multiply-add operation
-//     DECLARE_FUNCTION_3(fma);
-//     DECLARE_FUNCTION_3(fmaf);
-//     DECLARE_FUNCTION_3(fmal);
-// larger of two floating point values
-    DECLARE_FUNCTION_2(fmax);
-    DECLARE_FUNCTION_2(fmaxf);
-    DECLARE_FUNCTION_2(fmaxl);
-// smaller of two floating point values
-    DECLARE_FUNCTION_2(fmin);
-    DECLARE_FUNCTION_2(fminf);
-    DECLARE_FUNCTION_2(fminl);
-// positive difference of two floating point values
-    DECLARE_FUNCTION_2(fdim);
-    DECLARE_FUNCTION_2(fdimf);
-    DECLARE_FUNCTION_2(fdiml);
+#define LINALG_DECLARE_FUNCTION_2(NAME)                                                                                                                                                                                                                    \
+namespace detail {                                                                                                                                  \
+    inline constexpr auto NAME = [](auto&& x, auto&& y) constexpr noexcept {                                                                        \
+        return ::std::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));                                                             \
+    };                                                                                                                                              \
+}                                                                                                                                                   \
+template<vector V1, vector V2>                                                                                                                      \
+inline constexpr auto NAME(const V1& v1, const V2& v2) noexcept {                                                                                   \
+    return detail::BinaryVectorFunction<const V1, const V2, decltype(detail::NAME)>(v1, v2);                                                        \
+}                                                                                                                                                   \
+template<vector V, std::convertible_to<typename V::value_type> Scalar>                                                                              \
+inline constexpr auto NAME(const V& v, Scalar scalar) noexcept {                                                                                    \
+    return detail::VectorScalarFunction<const V, Scalar, decltype(detail::NAME)>{ v, scalar };                                                      \
+}                                                                                                                                                   \
+template<vector V, std::convertible_to<typename V::value_type> Scalar>                                                                              \
+inline constexpr auto NAME(Scalar scalar, const V& v) noexcept {                                                                                    \
+    return detail::ScalarVectorFunction<Scalar, const V, decltype(detail::NAME)>{ scalar, v };                                                      \
+}
 
+#define LINALG_DECLARE_FUNCTION_3(NAME)                                                                                        \
+namespace detail {                                                                                                      \
+    inline constexpr auto NAME = [](auto&& x, auto&& y, auto&& z) constexpr noexcept {                                  \
+        return ::std::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y), std::forward<decltype(z)>(z));   \
+    };                                                                                                                  \
+}                                                                                                                       \
+template<vector V1, vector V2, vector V3> inline constexpr auto NAME(const V1& v1, const V2& v2, const V3& v3) {        \
+    return detail::TernaryVectorFunction<const V1, const V2, const V3, decltype(detail::NAME)>(v1, v2, v3);             \
+}
 
-#undef DECLARE_FUNCTION
-#undef DECLARE_FUNCTION_2
-// #undef DECLARE_FUNCTION_3
+#define LINALG_DECLARE_FUNCTION_3_CONTAINER(NAME)                                                                                  \
+namespace detail {                                                                                                          \
+    inline constexpr auto NAME = [](auto&& x, auto&& y, auto&& z) constexpr noexcept {                                      \
+        return ::std::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y), std::forward<decltype(z)>(z));       \
+    };                                                                                                                      \
+}                                                                                                                           \
+template<vector V1, vector V2, typename T, size_t N> requires(                                                              \
+    suitable_vector_expression<V1, V2> &&                                                                                   \
+    (dynamic_vector<V1> || (static_vector<V1> && V1::static_size == N)) &&                                                  \
+    (dynamic_vector<V2> || (static_vector<V2> && V2::static_size == N))                                                     \
+)                                                                                                                           \
+inline constexpr auto NAME(const V1& v1, const V2& v2, std::array<T, N>& v3) noexcept {                                     \
+    return detail::VectorVectorContainerFunction<const V1, const V2, std::array<T, N>, decltype(detail::NAME)>(v1, v2, v3); \
+}                                                                                                                           \
+template<vector V1, vector V2, typename T> requires suitable_vector_expression<V1, V2>                                      \
+inline constexpr auto NAME(const V1& v1, const V2& v2, std::vector<T>& v3) noexcept {                                       \
+    return detail::VectorVectorContainerFunction<const V1, const V2, std::vector<T>, decltype(detail::NAME)>(v1, v2, v3);   \
+}
+
+LINALG_DECLARE_FUNCTION(abs); 
+LINALG_DECLARE_FUNCTION(fabs); 
+LINALG_DECLARE_FUNCTION_2(fmod);
+LINALG_DECLARE_FUNCTION_2(remainder);
+LINALG_DECLARE_FUNCTION_2(remainderf);
+LINALG_DECLARE_FUNCTION_2(remainderl);
+LINALG_DECLARE_FUNCTION_3_CONTAINER(remquo);
+LINALG_DECLARE_FUNCTION_3_CONTAINER(remquof);
+LINALG_DECLARE_FUNCTION_3_CONTAINER(remquol);
+LINALG_DECLARE_FUNCTION_3(fma);
+LINALG_DECLARE_FUNCTION_3(fmaf);
+LINALG_DECLARE_FUNCTION_3(fmal);
+LINALG_DECLARE_FUNCTION_2(fmax);
+LINALG_DECLARE_FUNCTION_2(fmaxf);
+LINALG_DECLARE_FUNCTION_2(fmaxl);
+LINALG_DECLARE_FUNCTION_2(fmin);
+LINALG_DECLARE_FUNCTION_2(fminf);
+LINALG_DECLARE_FUNCTION_2(fminl);
+LINALG_DECLARE_FUNCTION_2(fdim);
+LINALG_DECLARE_FUNCTION_2(fdimf);
+LINALG_DECLARE_FUNCTION_2(fdiml);
+LINALG_DECLARE_FUNCTION_3(lerp);
+LINALG_DECLARE_FUNCTION(exp);
+LINALG_DECLARE_FUNCTION(exp2);
+LINALG_DECLARE_FUNCTION(exp2f);
+LINALG_DECLARE_FUNCTION(exp2l);
+LINALG_DECLARE_FUNCTION(expm1);
+LINALG_DECLARE_FUNCTION(expm1f);
+LINALG_DECLARE_FUNCTION(expm1l);
+LINALG_DECLARE_FUNCTION(log);
+LINALG_DECLARE_FUNCTION(log10);
+LINALG_DECLARE_FUNCTION(log1p);
+LINALG_DECLARE_FUNCTION(log1pf);
+LINALG_DECLARE_FUNCTION(log1pl);
+LINALG_DECLARE_FUNCTION_2(pow);
+LINALG_DECLARE_FUNCTION(sqrt);
+LINALG_DECLARE_FUNCTION(cbrt);
+LINALG_DECLARE_FUNCTION(cbrtf);
+LINALG_DECLARE_FUNCTION(cbrtl);
+LINALG_DECLARE_FUNCTION_2(hypot);
+LINALG_DECLARE_FUNCTION_2(hypotf);
+LINALG_DECLARE_FUNCTION_2(hypotl);
+LINALG_DECLARE_FUNCTION(sin);
+LINALG_DECLARE_FUNCTION(cos);
+LINALG_DECLARE_FUNCTION(tan);
+LINALG_DECLARE_FUNCTION(asin);
+LINALG_DECLARE_FUNCTION(acos);
+LINALG_DECLARE_FUNCTION(atan);
+LINALG_DECLARE_FUNCTION_2(atan2);
+LINALG_DECLARE_FUNCTION(sinh);
+LINALG_DECLARE_FUNCTION(cosh);
+LINALG_DECLARE_FUNCTION(tanh);
+LINALG_DECLARE_FUNCTION(asinh);
+LINALG_DECLARE_FUNCTION(asinhf);
+LINALG_DECLARE_FUNCTION(asinhl);
+LINALG_DECLARE_FUNCTION(acosh);
+LINALG_DECLARE_FUNCTION(acoshf);
+LINALG_DECLARE_FUNCTION(acoshl);
+LINALG_DECLARE_FUNCTION(atanh);
+LINALG_DECLARE_FUNCTION(atanhf);
+LINALG_DECLARE_FUNCTION(atanhl);
+LINALG_DECLARE_FUNCTION(erf);
+LINALG_DECLARE_FUNCTION(erff);
+LINALG_DECLARE_FUNCTION(erfl);
+LINALG_DECLARE_FUNCTION(erfc);
+LINALG_DECLARE_FUNCTION(erfcf);
+LINALG_DECLARE_FUNCTION(erfcl);
+LINALG_DECLARE_FUNCTION(tgamma);
+LINALG_DECLARE_FUNCTION(tgammaf);
+LINALG_DECLARE_FUNCTION(tgammal);
+LINALG_DECLARE_FUNCTION(lgamma);
+LINALG_DECLARE_FUNCTION(lgammaf);
+LINALG_DECLARE_FUNCTION(lgammal);
+LINALG_DECLARE_FUNCTION(ceil);
+LINALG_DECLARE_FUNCTION(floor);
+LINALG_DECLARE_FUNCTION(trunc);
+LINALG_DECLARE_FUNCTION(truncf);
+LINALG_DECLARE_FUNCTION(truncl);
+LINALG_DECLARE_FUNCTION(round);
+LINALG_DECLARE_FUNCTION(roundf);
+LINALG_DECLARE_FUNCTION(roundl);
+LINALG_DECLARE_FUNCTION(lround);
+LINALG_DECLARE_FUNCTION(lroundf);
+LINALG_DECLARE_FUNCTION(lroundl);
+LINALG_DECLARE_FUNCTION(llround);
+LINALG_DECLARE_FUNCTION(llroundf);
+LINALG_DECLARE_FUNCTION(llroundl);
+LINALG_DECLARE_FUNCTION(nearbyint);
+LINALG_DECLARE_FUNCTION(nearbyintf);
+LINALG_DECLARE_FUNCTION(nearbyintl);
+LINALG_DECLARE_FUNCTION(rint);
+LINALG_DECLARE_FUNCTION(rintf);
+LINALG_DECLARE_FUNCTION(rintl);
+LINALG_DECLARE_FUNCTION(lrint);
+LINALG_DECLARE_FUNCTION(lrintf);
+LINALG_DECLARE_FUNCTION(lrintl);
+LINALG_DECLARE_FUNCTION(llrint);
+LINALG_DECLARE_FUNCTION(llrintf);
+LINALG_DECLARE_FUNCTION(llrintl);
+LINALG_DECLARE_FUNCTION_2(frexp);
+LINALG_DECLARE_FUNCTION_2(ldexp);
+LINALG_DECLARE_FUNCTION_2(modf);
+LINALG_DECLARE_FUNCTION_2(scalbn);
+LINALG_DECLARE_FUNCTION_2(scalbnf);
+LINALG_DECLARE_FUNCTION_2(scalbnl);
+LINALG_DECLARE_FUNCTION_2(scalbln);
+LINALG_DECLARE_FUNCTION_2(scalblnf);
+LINALG_DECLARE_FUNCTION_2(scalblnl);
+LINALG_DECLARE_FUNCTION(ilogb);
+LINALG_DECLARE_FUNCTION(ilogbf);
+LINALG_DECLARE_FUNCTION(ilogbl);
+LINALG_DECLARE_FUNCTION(logb);
+LINALG_DECLARE_FUNCTION(logbf);
+LINALG_DECLARE_FUNCTION(logbl);
+LINALG_DECLARE_FUNCTION_2(nextafter);
+LINALG_DECLARE_FUNCTION_2(nextafterf);
+LINALG_DECLARE_FUNCTION_2(nextafterl);
+LINALG_DECLARE_FUNCTION_2(nexttoward);
+LINALG_DECLARE_FUNCTION_2(nexttowardf);
+LINALG_DECLARE_FUNCTION_2(nexttowardl);
+LINALG_DECLARE_FUNCTION_2(copysign);
+LINALG_DECLARE_FUNCTION_2(copysignf);
+LINALG_DECLARE_FUNCTION_2(copysignl);
+LINALG_DECLARE_FUNCTION(fpclassify);
+LINALG_DECLARE_FUNCTION(isfinite);
+LINALG_DECLARE_FUNCTION(isinf);
+LINALG_DECLARE_FUNCTION(isnan);
+LINALG_DECLARE_FUNCTION(isnormal);
+LINALG_DECLARE_FUNCTION(signbit);
+LINALG_DECLARE_FUNCTION_2(isgreater);
+LINALG_DECLARE_FUNCTION_2(isgreaterequal);
+LINALG_DECLARE_FUNCTION_2(isless);
+LINALG_DECLARE_FUNCTION_2(islessequal);
+LINALG_DECLARE_FUNCTION_2(islessgreater);
+LINALG_DECLARE_FUNCTION_2(isunordered);
+LINALG_DECLARE_FUNCTION_3(assoc_laguerre);
+LINALG_DECLARE_FUNCTION_3(assoc_laguerref);
+LINALG_DECLARE_FUNCTION_3(assoc_laguerrel);
+LINALG_DECLARE_FUNCTION_3(assoc_legendre);
+LINALG_DECLARE_FUNCTION_3(assoc_legendref);
+LINALG_DECLARE_FUNCTION_3(assoc_legendrel);
+LINALG_DECLARE_FUNCTION_2(beta);
+LINALG_DECLARE_FUNCTION_2(betaf);
+LINALG_DECLARE_FUNCTION_2(betal);
+LINALG_DECLARE_FUNCTION(comp_ellint_1);
+LINALG_DECLARE_FUNCTION(comp_ellint_1f);
+LINALG_DECLARE_FUNCTION(comp_ellint_1l);
+LINALG_DECLARE_FUNCTION(comp_ellint_2);
+LINALG_DECLARE_FUNCTION(comp_ellint_2f);
+LINALG_DECLARE_FUNCTION(comp_ellint_2l);
+LINALG_DECLARE_FUNCTION_2(comp_ellint_3);
+LINALG_DECLARE_FUNCTION_2(comp_ellint_3f);
+LINALG_DECLARE_FUNCTION_2(comp_ellint_3l);
+LINALG_DECLARE_FUNCTION_2(cyl_bessel_i);
+LINALG_DECLARE_FUNCTION_2(cyl_bessel_if);
+LINALG_DECLARE_FUNCTION_2(cyl_bessel_il);
+LINALG_DECLARE_FUNCTION_2(cyl_bessel_j);
+LINALG_DECLARE_FUNCTION_2(cyl_bessel_jf);
+LINALG_DECLARE_FUNCTION_2(cyl_bessel_jl);
+LINALG_DECLARE_FUNCTION_2(cyl_bessel_k);
+LINALG_DECLARE_FUNCTION_2(cyl_bessel_kf);
+LINALG_DECLARE_FUNCTION_2(cyl_bessel_kl);
+LINALG_DECLARE_FUNCTION_2(cyl_neumann);
+LINALG_DECLARE_FUNCTION_2(cyl_neumannf);
+LINALG_DECLARE_FUNCTION_2(cyl_neumannl);
+LINALG_DECLARE_FUNCTION_2(ellint_1);
+LINALG_DECLARE_FUNCTION_2(ellint_1f);
+LINALG_DECLARE_FUNCTION_2(ellint_1l);
+LINALG_DECLARE_FUNCTION_2(ellint_2);
+LINALG_DECLARE_FUNCTION_2(ellint_2f);
+LINALG_DECLARE_FUNCTION_2(ellint_2l);
+LINALG_DECLARE_FUNCTION_3(ellint_3);
+LINALG_DECLARE_FUNCTION_3(ellint_3f);
+LINALG_DECLARE_FUNCTION_3(ellint_3l);
+LINALG_DECLARE_FUNCTION(expint);
+LINALG_DECLARE_FUNCTION(expintf);
+LINALG_DECLARE_FUNCTION(expintl);
+LINALG_DECLARE_FUNCTION_2(hermite);
+LINALG_DECLARE_FUNCTION_2(hermitef);
+LINALG_DECLARE_FUNCTION_2(hermitel);
+LINALG_DECLARE_FUNCTION_2(legendre);
+LINALG_DECLARE_FUNCTION_2(legendref);
+LINALG_DECLARE_FUNCTION_2(legendrel);
+LINALG_DECLARE_FUNCTION_2(laguerre);
+LINALG_DECLARE_FUNCTION_2(laguerref);
+LINALG_DECLARE_FUNCTION_2(laguerrel);
+LINALG_DECLARE_FUNCTION(riemann_zeta);
+LINALG_DECLARE_FUNCTION(riemann_zetaf);
+LINALG_DECLARE_FUNCTION(riemann_zetal);
+LINALG_DECLARE_FUNCTION_2(sph_bessel);
+LINALG_DECLARE_FUNCTION_2(sph_besself);
+LINALG_DECLARE_FUNCTION_2(sph_bessell);
+LINALG_DECLARE_FUNCTION_3(sph_legendre);
+LINALG_DECLARE_FUNCTION_3(sph_legendref);
+LINALG_DECLARE_FUNCTION_3(sph_legendrel);
+LINALG_DECLARE_FUNCTION_2(sph_neumann);
+LINALG_DECLARE_FUNCTION_2(sph_neumannf);
+LINALG_DECLARE_FUNCTION_2(sph_neumannl);
+
+#undef LINALG_DECLARE_FUNCTION
+#undef LINALG_DECLARE_FUNCTION_2
+#undef LINALG_DECLARE_FUNCTION_3
+#undef LINALG_DECLARE_FUNCTION_3_CONTAINER
 }
