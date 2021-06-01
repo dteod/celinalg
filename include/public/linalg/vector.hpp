@@ -433,11 +433,11 @@ inline constexpr auto crend(const vector auto& v) noexcept { return detail::cren
 template<req::number T>
 using DynamicVector = Vector<T, 0>;
 
-Vector(req::number auto&&... args)
-    -> Vector< traits::common_type_t<std::remove_reference_t<decltype(args)>...>, sizeof...(args) >;
+Vector(const req::number auto&... args)
+    -> Vector< traits::common_type_t<std::decay_t<decltype(args)>...>, sizeof...(args) >;
 
 Vector(vector auto&& vec) 
-    -> Vector<typename std::remove_reference_t<decltype(vec)>::value_type, std::remove_reference_t<decltype(vec)>::static_size>;
+    -> Vector<typename std::decay_t<decltype(vec)>::value_type, std::decay_t<decltype(vec)>::static_size>;
 
 template<typename T, size_t N> Vector(const T(&)[N]) -> Vector<T, N>;
 template<typename T, size_t N> Vector(std::array<T, N>) -> Vector<T, N>;

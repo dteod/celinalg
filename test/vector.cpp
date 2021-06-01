@@ -535,8 +535,8 @@ TEMPLATE_TEST_CASE("vector accumulate", "[linalg][vector]", TYPE_PARAMETER_LIST)
     REQUIRE(std::accumulate(v.begin(), v.end(), TestType(0)) == TestType(55));
 }
 
-TEST_CASE("math functions - abs/fabs", "[linalg][vector]") {
-    Vector<int, 10> v{1, 2, 5, -6, -1, 0, 0, 4, -4, 8};
+TEST_CASE("vector math functions - abs/fabs", "[linalg][vector]") {
+    Vector v{1, 2, 5, -6, -1, 0, 0, 4, -4, 8};
     {
         auto fcn = abs(v);
         REQUIRE(fcn[0] == 1);
@@ -566,8 +566,8 @@ TEST_CASE("math functions - abs/fabs", "[linalg][vector]") {
     
 }
 
-TEST_CASE("math functions - fmod", "[linalg][vector]") {
-    Vector<double, 5> v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.};
+TEST_CASE("vector math functions - fmod", "[linalg][vector]") {
+    Vector v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.};
 
     auto fcn = fmod(v1, v2);
     REQUIRE(fcn[0] == fmod(v1[0], v2[0]));
@@ -577,8 +577,8 @@ TEST_CASE("math functions - fmod", "[linalg][vector]") {
     REQUIRE(fcn[4] == fmod(v1[4], v2[4]));
 }
 
-TEST_CASE("math functions - remainder", "[linalg][vector]") {
-    Vector<double, 5> v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.};
+TEST_CASE("vector math functions - remainder", "[linalg][vector]") {
+    Vector v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.};
 
     auto fcn = remainder(v1, v2);
     REQUIRE(fcn[0] == remainder(v1[0], v2[0]));
@@ -588,8 +588,8 @@ TEST_CASE("math functions - remainder", "[linalg][vector]") {
     REQUIRE(fcn[4] == remainder(v1[4], v2[4]));
 }
 
-TEST_CASE("math functions - remquo", "[linalg][vector]") {
-    Vector<double, 5> v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.};
+TEST_CASE("vector math functions - remquo", "[linalg][vector]") {
+    Vector v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.};
     std::array<int, 5> arr{};
     std::array<int*, 5> pArr;
     std::transform(arr.begin(), arr.end(), pArr.begin(), [](int& v) { return &v; }); 
@@ -606,3 +606,239 @@ TEST_CASE("math functions - remquo", "[linalg][vector]") {
         check(i);
     }
 }
+
+
+TEST_CASE("vector math functions - fma", "[linalg][vector]") {
+    Vector v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.}, v3{10., 7., -0.5, 33.6, std::numbers::pi};
+    auto out = fma(v1, v2, v3);
+    for(size_t i = 0; i != v1.size(); ++i) {
+        REQUIRE(out[i] == v1[i]*v2[i] + v3[i]); 
+    }
+}
+
+#define DEFINE_FUNCTION_CALL_TEST_1(FUNCTION)                           \
+TEST_CASE("vector math functions - " #FUNCTION, "[linalg][vector]") {   \
+    Vector v{1., 2., 5., -6., -1.};                  \
+    auto out = FUNCTION(v);                                     \
+    for(size_t i = 0; i != v.size(); ++i) {                     \
+        if(std::isnan(out[i])) {                                \
+            REQUIRE(std::isnan(std::FUNCTION(v[i])));           \
+        } else {                                                \
+            REQUIRE(out[i] == std::FUNCTION(v[i]));             \
+        }                                                       \
+    }                                                           \
+}
+
+#define DEFINE_FUNCTION_CALL_TEST_2(FUNCTION)                                \
+TEST_CASE("vector math functions - " #FUNCTION, "[linalg][vector]") {               \
+    Vector v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.};   \
+    auto out = FUNCTION(v1, v2);                                             \
+    for(size_t i = 0; i != v1.size(); ++i) {                                 \
+        if(std::isnan(out[i])) {                                             \
+            REQUIRE(std::isnan(std::FUNCTION(v1[i], v2[i])));                \
+        } else {                                                             \
+            REQUIRE(out[i] == std::FUNCTION(v1[i], v2[i]));                  \
+        }                                                                    \
+    }                                                                        \
+}
+
+#define DEFINE_FUNCTION_CALL_TEST_3(FUNCTION)                                                                           \
+TEST_CASE("vector math functions - " #FUNCTION, "[linalg][vector]") {                                                          \
+    Vector v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.}, v3{10., 7., -0.5, 33.6, std::numbers::pi};   \
+    auto out = FUNCTION(v1, v2, v3);                                                                                    \
+    for(size_t i = 0; i != v1.size(); ++i) {                                                                            \
+        if(std::isnan(out[i])) {                                                                                        \
+            REQUIRE(std::isnan(std::FUNCTION(v1[i], v2[i], v3[i])));                                                    \
+        } else {                                                                                                        \
+            REQUIRE(out[i] == std::FUNCTION(v1[i], v2[i], v3[i]));                                                      \
+        }                                                                                                               \
+    }                                                                                                                   \
+}
+
+
+DEFINE_FUNCTION_CALL_TEST_2(fmax);
+DEFINE_FUNCTION_CALL_TEST_2(fmaxf);
+DEFINE_FUNCTION_CALL_TEST_2(fmaxl);
+DEFINE_FUNCTION_CALL_TEST_2(fmin);
+DEFINE_FUNCTION_CALL_TEST_2(fminf);
+DEFINE_FUNCTION_CALL_TEST_2(fminl);
+DEFINE_FUNCTION_CALL_TEST_2(fdim);
+DEFINE_FUNCTION_CALL_TEST_2(fdimf);
+DEFINE_FUNCTION_CALL_TEST_2(fdiml);
+DEFINE_FUNCTION_CALL_TEST_3(lerp);
+DEFINE_FUNCTION_CALL_TEST_1(exp);
+DEFINE_FUNCTION_CALL_TEST_1(exp2);
+DEFINE_FUNCTION_CALL_TEST_1(exp2f);
+DEFINE_FUNCTION_CALL_TEST_1(exp2l);
+DEFINE_FUNCTION_CALL_TEST_1(expm1);
+DEFINE_FUNCTION_CALL_TEST_1(expm1f);
+DEFINE_FUNCTION_CALL_TEST_1(expm1l);
+DEFINE_FUNCTION_CALL_TEST_1(log);
+DEFINE_FUNCTION_CALL_TEST_1(log10);
+DEFINE_FUNCTION_CALL_TEST_1(log1p);
+DEFINE_FUNCTION_CALL_TEST_1(log1pf);
+DEFINE_FUNCTION_CALL_TEST_1(log1pl);
+DEFINE_FUNCTION_CALL_TEST_2(pow);
+DEFINE_FUNCTION_CALL_TEST_1(sqrt);
+DEFINE_FUNCTION_CALL_TEST_1(cbrt);
+DEFINE_FUNCTION_CALL_TEST_1(cbrtf);
+DEFINE_FUNCTION_CALL_TEST_1(cbrtl);
+DEFINE_FUNCTION_CALL_TEST_2(hypot);
+DEFINE_FUNCTION_CALL_TEST_2(hypotf);
+DEFINE_FUNCTION_CALL_TEST_2(hypotl);
+DEFINE_FUNCTION_CALL_TEST_1(sin);
+DEFINE_FUNCTION_CALL_TEST_1(cos);
+DEFINE_FUNCTION_CALL_TEST_1(tan);
+DEFINE_FUNCTION_CALL_TEST_1(asin);
+DEFINE_FUNCTION_CALL_TEST_1(acos);
+DEFINE_FUNCTION_CALL_TEST_1(atan);
+DEFINE_FUNCTION_CALL_TEST_2(atan2);
+DEFINE_FUNCTION_CALL_TEST_1(sinh);
+DEFINE_FUNCTION_CALL_TEST_1(cosh);
+DEFINE_FUNCTION_CALL_TEST_1(tanh);
+DEFINE_FUNCTION_CALL_TEST_1(asinh);
+DEFINE_FUNCTION_CALL_TEST_1(asinhf);
+DEFINE_FUNCTION_CALL_TEST_1(asinhl);
+DEFINE_FUNCTION_CALL_TEST_1(acosh);
+DEFINE_FUNCTION_CALL_TEST_1(acoshf);
+DEFINE_FUNCTION_CALL_TEST_1(acoshl);
+DEFINE_FUNCTION_CALL_TEST_1(atanh);
+DEFINE_FUNCTION_CALL_TEST_1(atanhf);
+DEFINE_FUNCTION_CALL_TEST_1(atanhl);
+DEFINE_FUNCTION_CALL_TEST_1(erf);
+DEFINE_FUNCTION_CALL_TEST_1(erff);
+DEFINE_FUNCTION_CALL_TEST_1(erfl);
+DEFINE_FUNCTION_CALL_TEST_1(erfc);
+DEFINE_FUNCTION_CALL_TEST_1(erfcf);
+DEFINE_FUNCTION_CALL_TEST_1(erfcl);
+DEFINE_FUNCTION_CALL_TEST_1(tgamma);
+DEFINE_FUNCTION_CALL_TEST_1(tgammaf);
+DEFINE_FUNCTION_CALL_TEST_1(tgammal);
+DEFINE_FUNCTION_CALL_TEST_1(lgamma);
+DEFINE_FUNCTION_CALL_TEST_1(lgammaf);
+DEFINE_FUNCTION_CALL_TEST_1(lgammal);
+DEFINE_FUNCTION_CALL_TEST_1(ceil);
+DEFINE_FUNCTION_CALL_TEST_1(floor);
+DEFINE_FUNCTION_CALL_TEST_1(trunc);
+DEFINE_FUNCTION_CALL_TEST_1(truncf);
+DEFINE_FUNCTION_CALL_TEST_1(truncl);
+DEFINE_FUNCTION_CALL_TEST_1(round);
+DEFINE_FUNCTION_CALL_TEST_1(roundf);
+DEFINE_FUNCTION_CALL_TEST_1(roundl);
+DEFINE_FUNCTION_CALL_TEST_1(lround);
+DEFINE_FUNCTION_CALL_TEST_1(lroundf);
+DEFINE_FUNCTION_CALL_TEST_1(lroundl);
+DEFINE_FUNCTION_CALL_TEST_1(llround);
+DEFINE_FUNCTION_CALL_TEST_1(llroundf);
+DEFINE_FUNCTION_CALL_TEST_1(llroundl);
+DEFINE_FUNCTION_CALL_TEST_1(nearbyint);
+DEFINE_FUNCTION_CALL_TEST_1(nearbyintf);
+DEFINE_FUNCTION_CALL_TEST_1(nearbyintl);
+DEFINE_FUNCTION_CALL_TEST_1(rint);
+DEFINE_FUNCTION_CALL_TEST_1(rintf);
+DEFINE_FUNCTION_CALL_TEST_1(rintl);
+DEFINE_FUNCTION_CALL_TEST_1(lrint);
+DEFINE_FUNCTION_CALL_TEST_1(lrintf);
+DEFINE_FUNCTION_CALL_TEST_1(lrintl);
+DEFINE_FUNCTION_CALL_TEST_1(llrint);
+DEFINE_FUNCTION_CALL_TEST_1(llrintf);
+DEFINE_FUNCTION_CALL_TEST_1(llrintl);
+// DEFINE_FUNCTION_CALL_TEST_2(frexp);
+// DEFINE_FUNCTION_CALL_TEST_2(ldexp);
+// DEFINE_FUNCTION_CALL_TEST_2(modf);
+DEFINE_FUNCTION_CALL_TEST_2(scalbn);
+DEFINE_FUNCTION_CALL_TEST_2(scalbnf);
+DEFINE_FUNCTION_CALL_TEST_2(scalbnl);
+DEFINE_FUNCTION_CALL_TEST_2(scalbln);
+DEFINE_FUNCTION_CALL_TEST_2(scalblnf);
+DEFINE_FUNCTION_CALL_TEST_2(scalblnl);
+DEFINE_FUNCTION_CALL_TEST_1(ilogb);
+DEFINE_FUNCTION_CALL_TEST_1(ilogbf);
+DEFINE_FUNCTION_CALL_TEST_1(ilogbl);
+DEFINE_FUNCTION_CALL_TEST_1(logb);
+DEFINE_FUNCTION_CALL_TEST_1(logbf);
+DEFINE_FUNCTION_CALL_TEST_1(logbl);
+DEFINE_FUNCTION_CALL_TEST_2(nextafter);
+DEFINE_FUNCTION_CALL_TEST_2(nextafterf);
+DEFINE_FUNCTION_CALL_TEST_2(nextafterl);
+DEFINE_FUNCTION_CALL_TEST_2(nexttoward);
+DEFINE_FUNCTION_CALL_TEST_2(nexttowardf);
+DEFINE_FUNCTION_CALL_TEST_2(nexttowardl);
+DEFINE_FUNCTION_CALL_TEST_2(copysign);
+DEFINE_FUNCTION_CALL_TEST_2(copysignf);
+DEFINE_FUNCTION_CALL_TEST_2(copysignl);
+DEFINE_FUNCTION_CALL_TEST_1(fpclassify);
+DEFINE_FUNCTION_CALL_TEST_1(isfinite);
+DEFINE_FUNCTION_CALL_TEST_1(isinf);
+DEFINE_FUNCTION_CALL_TEST_1(isnan);
+DEFINE_FUNCTION_CALL_TEST_1(isnormal);
+DEFINE_FUNCTION_CALL_TEST_1(signbit);
+DEFINE_FUNCTION_CALL_TEST_2(isgreater);
+DEFINE_FUNCTION_CALL_TEST_2(isgreaterequal);
+DEFINE_FUNCTION_CALL_TEST_2(isless);
+DEFINE_FUNCTION_CALL_TEST_2(islessequal);
+DEFINE_FUNCTION_CALL_TEST_2(islessgreater);
+DEFINE_FUNCTION_CALL_TEST_2(isunordered);
+// DEFINE_FUNCTION_CALL_TEST_3(assoc_laguerre);
+// DEFINE_FUNCTION_CALL_TEST_3(assoc_laguerref);
+// DEFINE_FUNCTION_CALL_TEST_3(assoc_laguerrel);
+// DEFINE_FUNCTION_CALL_TEST_3(assoc_legendre);
+// DEFINE_FUNCTION_CALL_TEST_3(assoc_legendref);
+// DEFINE_FUNCTION_CALL_TEST_3(assoc_legendrel);
+// DEFINE_FUNCTION_CALL_TEST_2(beta);
+// DEFINE_FUNCTION_CALL_TEST_2(betaf);
+// DEFINE_FUNCTION_CALL_TEST_2(betal);
+// DEFINE_FUNCTION_CALL_TEST_1(comp_ellint_1);
+// DEFINE_FUNCTION_CALL_TEST_1(comp_ellint_1f);
+// DEFINE_FUNCTION_CALL_TEST_1(comp_ellint_1l);
+// DEFINE_FUNCTION_CALL_TEST_1(comp_ellint_2);
+// DEFINE_FUNCTION_CALL_TEST_1(comp_ellint_2f);
+// DEFINE_FUNCTION_CALL_TEST_1(comp_ellint_2l);
+// DEFINE_FUNCTION_CALL_TEST_2(comp_ellint_3);
+// DEFINE_FUNCTION_CALL_TEST_2(comp_ellint_3f);
+// DEFINE_FUNCTION_CALL_TEST_2(comp_ellint_3l);
+// DEFINE_FUNCTION_CALL_TEST_2(cyl_bessel_i);
+// DEFINE_FUNCTION_CALL_TEST_2(cyl_bessel_if);
+// DEFINE_FUNCTION_CALL_TEST_2(cyl_bessel_il);
+// DEFINE_FUNCTION_CALL_TEST_2(cyl_bessel_j);
+// DEFINE_FUNCTION_CALL_TEST_2(cyl_bessel_jf);
+// DEFINE_FUNCTION_CALL_TEST_2(cyl_bessel_jl);
+// DEFINE_FUNCTION_CALL_TEST_2(cyl_bessel_k);
+// DEFINE_FUNCTION_CALL_TEST_2(cyl_bessel_kf);
+// DEFINE_FUNCTION_CALL_TEST_2(cyl_bessel_kl);
+// DEFINE_FUNCTION_CALL_TEST_2(cyl_neumann);
+// DEFINE_FUNCTION_CALL_TEST_2(cyl_neumannf);
+// DEFINE_FUNCTION_CALL_TEST_2(cyl_neumannl);
+// DEFINE_FUNCTION_CALL_TEST_2(ellint_1);
+// DEFINE_FUNCTION_CALL_TEST_2(ellint_1f);
+// DEFINE_FUNCTION_CALL_TEST_2(ellint_1l);
+// DEFINE_FUNCTION_CALL_TEST_2(ellint_2);
+// DEFINE_FUNCTION_CALL_TEST_2(ellint_2f);
+// DEFINE_FUNCTION_CALL_TEST_2(ellint_2l);
+// DEFINE_FUNCTION_CALL_TEST_3(ellint_3);
+// DEFINE_FUNCTION_CALL_TEST_3(ellint_3f);
+// DEFINE_FUNCTION_CALL_TEST_3(ellint_3l);
+// DEFINE_FUNCTION_CALL_TEST_1(expint);
+// DEFINE_FUNCTION_CALL_TEST_1(expintf);
+// DEFINE_FUNCTION_CALL_TEST_1(expintl);
+// DEFINE_FUNCTION_CALL_TEST_2(hermite);
+// DEFINE_FUNCTION_CALL_TEST_2(hermitef);
+// DEFINE_FUNCTION_CALL_TEST_2(hermitel);
+// DEFINE_FUNCTION_CALL_TEST_2(legendre);
+// DEFINE_FUNCTION_CALL_TEST_2(legendref);
+// DEFINE_FUNCTION_CALL_TEST_2(legendrel);
+// DEFINE_FUNCTION_CALL_TEST_2(laguerre);
+// DEFINE_FUNCTION_CALL_TEST_2(laguerref);
+// DEFINE_FUNCTION_CALL_TEST_2(laguerrel);
+// DEFINE_FUNCTION_CALL_TEST_1(riemann_zeta);
+// DEFINE_FUNCTION_CALL_TEST_1(riemann_zetaf);
+// DEFINE_FUNCTION_CALL_TEST_1(riemann_zetal);
+// DEFINE_FUNCTION_CALL_TEST_2(sph_bessel);
+// DEFINE_FUNCTION_CALL_TEST_2(sph_besself);
+// DEFINE_FUNCTION_CALL_TEST_2(sph_bessell);
+// DEFINE_FUNCTION_CALL_TEST_3(sph_legendre);
+// DEFINE_FUNCTION_CALL_TEST_3(sph_legendref);
+// DEFINE_FUNCTION_CALL_TEST_3(sph_legendrel);
+// DEFINE_FUNCTION_CALL_TEST_2(sph_neumann);
+// DEFINE_FUNCTION_CALL_TEST_2(sph_neumannf);
+// DEFINE_FUNCTION_CALL_TEST_2(sph_neumannl);

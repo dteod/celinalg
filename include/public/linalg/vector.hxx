@@ -530,6 +530,61 @@ public:
     }
 };
 
+
+template<vector V, typename Container, std::invocable<typename V::value_type, typename Container::value_type> F>
+class VectorContainerFunction {
+public:
+    inline constexpr static bool is_temporary { true };
+    inline constexpr static size_t static_size { V::static_size };
+    using value_type = std::invoke_result_t<F, typename V::value_type, typename Container::value_type>;
+private:
+    std::conditional_t<V::is_temporary, V, V&> v1;
+    Container& v2;
+    template<typename Element, typename IndexPicker> requires(container<Element> && expression_participant<Element>) friend class detail::linear_element_iterator;
+    inline constexpr decltype(auto) pick(size_t index) const noexcept { return F{}(v1[index], v2[index]); }
+    inline constexpr decltype(auto) pick(size_t index) noexcept { return F{}(v1[index], v2[index]); }
+
+    template<typename T> struct is_container_array: std::false_type {};
+    template<typename T, size_t N> struct is_container_array<std::array<T, N>>: std::true_type {};
+    template<typename T> inline constexpr static bool is_container_array_v { is_container_array<T>::value };
+public:
+    constexpr VectorContainerFunction(const V& v1, Container& v2) noexcept: v1{v1}, v2{v2} {}
+    
+    inline constexpr size_t size() const noexcept(!dynamic_vector<V> && is_container_array_v<Container>) {
+        if constexpr(dynamic_vector<V> || !is_container_array_v<Container>) {
+            if(v1.size() != v2.size())
+                throw std::runtime_error("VectorContainerFunction: size mismatch");
+        }
+        return v1.size(); 
+    }
+    
+    inline constexpr decltype(auto) operator[](size_t index) const noexcept { return pick(index); }
+    inline constexpr decltype(auto) at(size_t index) const { if(index < v1.size()) return pick(index); else throw std::out_of_range("TernaryVectorFunction"); }
+
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
+};
+
+
 template<vector V1, vector V2, typename Container, std::invocable<typename V1::value_type, typename V2::value_type, typename Container::value_type> F> requires suitable_vector_expression<V1, V2>
 class VectorVectorContainerFunction {
 public:
@@ -550,7 +605,7 @@ private:
 public:
     constexpr VectorVectorContainerFunction(const V1& v1, const V2& v2, Container& v3) noexcept: v1{v1}, v2{v2}, v3{v3} {}
     
-    inline constexpr size_t size() const noexcept(!(dynamic_vector<V1> || dynamic_vector<V2>)) {
+    inline constexpr size_t size() const noexcept(!(dynamic_vector<V1> || dynamic_vector<V2> || !is_container_array_v<Container>)) {
         if constexpr(dynamic_vector<V1> || dynamic_vector<V2> || !is_container_array_v<Container>) {
             if(v1.size() != v2.size() || v1.size() != v3.size())
                 throw std::runtime_error("VectorVectorContainerFunction: size mismatch");
@@ -638,25 +693,25 @@ template<vector V> inline constexpr auto NAME(const V& v) noexcept {            
 }
 
 #define LINALG_DECLARE_FUNCTION_2(NAME)                                                                                                                                                                                                                    \
-namespace detail {                                                                                                                                  \
-    inline constexpr auto NAME = [](auto&& x, auto&& y) constexpr noexcept {                                                                        \
-        return ::std::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));                                                             \
-    };                                                                                                                                              \
-}                                                                                                                                                   \
-template<vector V1, vector V2>                                                                                                                      \
-inline constexpr auto NAME(const V1& v1, const V2& v2) noexcept {                                                                                   \
-    return detail::BinaryVectorFunction<const V1, const V2, decltype(detail::NAME)>(v1, v2);                                                        \
-}                                                                                                                                                   \
-template<vector V, std::convertible_to<typename V::value_type> Scalar>                                                                              \
-inline constexpr auto NAME(const V& v, Scalar scalar) noexcept {                                                                                    \
-    return detail::VectorScalarFunction<const V, Scalar, decltype(detail::NAME)>{ v, scalar };                                                      \
-}                                                                                                                                                   \
-template<vector V, std::convertible_to<typename V::value_type> Scalar>                                                                              \
-inline constexpr auto NAME(Scalar scalar, const V& v) noexcept {                                                                                    \
-    return detail::ScalarVectorFunction<Scalar, const V, decltype(detail::NAME)>{ scalar, v };                                                      \
+namespace detail {                                                                                                      \
+    inline constexpr auto NAME = [](auto&& x, auto&& y) constexpr noexcept {                                            \
+        return ::std::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));                                 \
+    };                                                                                                                  \
+}                                                                                                                       \
+template<vector V1, vector V2>                                                                                          \
+inline constexpr auto NAME(const V1& v1, const V2& v2) noexcept {                                                       \
+    return detail::BinaryVectorFunction<const V1, const V2, decltype(detail::NAME)>(v1, v2);                            \
+}                                                                                                                       \
+template<vector V, std::convertible_to<typename V::value_type> Scalar>                                                  \
+inline constexpr auto NAME(const V& v, Scalar scalar) noexcept {                                                        \
+    return detail::VectorScalarFunction<const V, Scalar, decltype(detail::NAME)>{ v, scalar };                          \
+}                                                                                                                       \
+template<vector V, std::convertible_to<typename V::value_type> Scalar>                                                  \
+inline constexpr auto NAME(Scalar scalar, const V& v) noexcept {                                                        \
+    return detail::ScalarVectorFunction<Scalar, const V, decltype(detail::NAME)>{ scalar, v };                          \
 }
 
-#define LINALG_DECLARE_FUNCTION_3(NAME)                                                                                        \
+#define LINALG_DECLARE_FUNCTION_3(NAME)                                                                                 \
 namespace detail {                                                                                                      \
     inline constexpr auto NAME = [](auto&& x, auto&& y, auto&& z) constexpr noexcept {                                  \
         return ::std::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y), std::forward<decltype(z)>(z));   \
@@ -666,7 +721,24 @@ template<vector V1, vector V2, vector V3> inline constexpr auto NAME(const V1& v
     return detail::TernaryVectorFunction<const V1, const V2, const V3, decltype(detail::NAME)>(v1, v2, v3);             \
 }
 
-#define LINALG_DECLARE_FUNCTION_3_CONTAINER(NAME)                                                                                  \
+#define LINALG_DECLARE_FUNCTION_2_CONTAINER(NAME)                                                       \
+namespace detail {                                                                                      \
+    inline constexpr auto NAME = [](auto&& x, auto&& y) constexpr noexcept {                            \
+        return ::std::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));                 \
+    };                                                                                                  \
+}                                                                                                       \
+template<vector V, typename T, size_t N> requires(                                                      \
+    (dynamic_vector<V> || (static_vector<V> && V::static_size == N))                                    \
+)                                                                                                       \
+inline constexpr auto NAME(const V& v1, std::array<T, N>& v2) noexcept {                                \
+    return detail::VectorContainerFunction<const V, std::array<T, N>, decltype(detail::NAME)>(v1, v2);  \
+}                                                                                                       \
+template<vector V, typename T>                                                                          \
+inline constexpr auto NAME(const V& v1, std::vector<T>& v2) noexcept {                                  \
+    return detail::VectorContainerFunction<const V, std::vector<T>, decltype(detail::NAME)>(v1, v2);    \
+}
+
+#define LINALG_DECLARE_FUNCTION_3_CONTAINER(NAME)                                                                           \
 namespace detail {                                                                                                          \
     inline constexpr auto NAME = [](auto&& x, auto&& y, auto&& z) constexpr noexcept {                                      \
         return ::std::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y), std::forward<decltype(z)>(z));       \
@@ -784,9 +856,9 @@ LINALG_DECLARE_FUNCTION(lrintl);
 LINALG_DECLARE_FUNCTION(llrint);
 LINALG_DECLARE_FUNCTION(llrintf);
 LINALG_DECLARE_FUNCTION(llrintl);
-LINALG_DECLARE_FUNCTION_2(frexp);
-LINALG_DECLARE_FUNCTION_2(ldexp);
-LINALG_DECLARE_FUNCTION_2(modf);
+LINALG_DECLARE_FUNCTION_2_CONTAINER(frexp);
+LINALG_DECLARE_FUNCTION_2_CONTAINER(ldexp);
+LINALG_DECLARE_FUNCTION_2_CONTAINER(modf);
 LINALG_DECLARE_FUNCTION_2(scalbn);
 LINALG_DECLARE_FUNCTION_2(scalbnf);
 LINALG_DECLARE_FUNCTION_2(scalbnl);
