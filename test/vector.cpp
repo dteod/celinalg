@@ -7,15 +7,10 @@
 using namespace linalg;
 
 #define TYPE_PARAMETER_LIST \
-    uint8_t, uint16_t, uint32_t, uint64_t, __uint128_t, int8_t, int16_t, int32_t, int64_t, __int128_t, float, double,          \
+    uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double,        \
     std::complex<uint8_t>, std::complex<uint16_t>, std::complex<uint32_t>, std::complex<uint64_t>,  \
-    std::complex<int8_t>, std::complex<int16_t>, std::complex<int32_t>, std::complex<int64_t>,    \
+    std::complex<int8_t>, std::complex<int16_t>, std::complex<int32_t>, std::complex<int64_t>,      \
     std::complex<float>, std::complex<double>
-
-// Notice that these tests won't work with std::complex<__int128_t> and std::complex<__uint128_t>.
-// The reason is that there is no "int256_t" that we can bitcast to a complex of 128-bit type.
-// Where are you gonna use it, anyways?
-
 
 TEMPLATE_TEST_CASE("vector instantiation", "[linalg][vector]", TYPE_PARAMETER_LIST) {
     if constexpr(std::same_as<TestType, int>) {
@@ -365,11 +360,12 @@ TEMPLATE_TEST_CASE("constexpr Vector for non-complex types", "[linalg][vector]",
         // even if it has all the characteristics to be used as a structural one.
         // Evaluating it at runtime is ok though
         Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
-        [[maybe_unused]] auto b = std::accumulate(v.begin(), v.end(), TestType(0));
+        auto b = std::accumulate(v.begin(), v.end(), TestType(0));
+        REQUIRE(b == TestType(1+2+3));
     } else {
         [[maybe_unused]] constexpr auto b = Getter<vector_scalar_product_passed<TestType>()>::value;
+        REQUIRE(b == TestType(1+2+3));
     }
-    REQUIRE( true );
 }
 #else
 // 
@@ -597,9 +593,8 @@ TEST_CASE("vector math functions - remquo", "[linalg][vector]") {
     auto fcn = remquo(v1, v2, pArr);
 
     int buffer = 13094948;
-    auto check = [&](int i) {
-        fcn[i];
-        remquo(v1[i], v2[i], &buffer);
+    auto check = [&](size_t i) {
+        REQUIRE(fcn[i] == remquo(v1[i], v2[i], &buffer));
         REQUIRE(arr[i] == buffer); 
     };
     for(size_t i = 0; i != pArr.size(); ++i) {
@@ -645,14 +640,26 @@ TEST_CASE("vector math functions - " #FUNCTION, "[linalg][vector]") {           
 #define DEFINE_FUNCTION_CALL_TEST_3(FUNCTION)                                                                           \
 TEST_CASE("vector math functions - " #FUNCTION, "[linalg][vector]") {                                                          \
     Vector v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.}, v3{10., 7., -0.5, 33.6, std::numbers::pi};   \
-    auto out = FUNCTION(v1, v2, v3);                                                                                    \
-    for(size_t i = 0; i != v1.size(); ++i) {                                                                            \
-        if(std::isnan(out[i])) {                                                                                        \
-            REQUIRE(std::isnan(std::FUNCTION(v1[i], v2[i], v3[i])));                                                    \
-        } else {                                                                                                        \
-            REQUIRE(out[i] == std::FUNCTION(v1[i], v2[i], v3[i]));                                                      \
-        }                                                                                                               \
-    }                                                                                                                   \
+    {\
+        auto out = FUNCTION(v1, v2, v3);                                                                                    \
+        for(size_t i = 0; i != v1.size(); ++i) {                                                                            \
+            if(std::isnan(out[i])) {                                                                                        \
+                REQUIRE(std::isnan(std::FUNCTION(v1[i], v2[i], v3[i])));                                                    \
+            } else {                                                                                                        \
+                REQUIRE(out[i] == std::FUNCTION(v1[i], v2[i], v3[i]));                                                      \
+            }                                                                                                               \
+        }                                                                                                                   \
+    }\
+    {\
+        auto out = FUNCTION(v1, v2, 10.0);                                                                                    \
+        for(size_t i = 0; i != v1.size(); ++i) {                                                                            \
+            if(std::isnan(out[i])) {                                                                                        \
+                REQUIRE(std::isnan(std::FUNCTION(v1[i], v2[i], 10)));                                                    \
+            } else {                                                                                                        \
+                REQUIRE(out[i] == std::FUNCTION(v1[i], v2[i], 10));                                                      \
+            }                                                                                                               \
+        }                                                                                                                   \
+    }\
 }
 
 
@@ -743,9 +750,56 @@ DEFINE_FUNCTION_CALL_TEST_1(lrintl);
 DEFINE_FUNCTION_CALL_TEST_1(llrint);
 DEFINE_FUNCTION_CALL_TEST_1(llrintf);
 DEFINE_FUNCTION_CALL_TEST_1(llrintl);
-// DEFINE_FUNCTION_CALL_TEST_2(frexp);
-// DEFINE_FUNCTION_CALL_TEST_2(ldexp);
-// DEFINE_FUNCTION_CALL_TEST_2(modf);
+
+
+TEST_CASE("vector math functions - frexp", "[linalg][vector]") {
+    Vector v{1., 2., 5., -6., -1.};
+    std::array<int, 5> arr{};
+    std::array<int*, 5> pArr;
+    std::transform(arr.begin(), arr.end(), pArr.begin(), [](int& v) { return &v; }); 
+
+    auto fcn = frexp(v, pArr);
+
+    int buffer = 13094948;
+    auto check = [&](size_t i) {
+        REQUIRE(fcn[i] == frexp(v[i], &buffer));
+        REQUIRE(arr[i] == buffer); 
+    };
+    for(size_t i = 0; i != pArr.size(); ++i) {
+        check(i);
+    }
+}
+
+TEST_CASE("vector math functions - ldexp", "[linalg][vector]") {
+    Vector v{1., 2., 5., -6., -1.};
+    std::array<int, 5> arr{1, 2, 3, 4, 5};
+    auto fcn = ldexp(v, arr);
+    auto check = [&](size_t i) {
+        REQUIRE(fcn[i] == ldexp(v[i], arr[i]));
+    };
+    for(size_t i = 0; i != arr.size(); ++i) {
+        check(i);
+    }
+}
+
+TEST_CASE("vector math functions - modf", "[linalg][vector]") {
+    Vector v{1., 2., 5., -6., -1.};
+    std::array<double, 5> arr{};
+    std::array<double*, 5> pArr;
+    std::transform(arr.begin(), arr.end(), pArr.begin(), [](double& v) { return &v; }); 
+
+    auto fcn = modf(v, pArr);
+
+    double buffer = 13094948;
+    auto check = [&](size_t i) {
+        REQUIRE(fcn[i] == modf(v[i], &buffer));
+        REQUIRE(arr[i] == buffer); 
+    };
+    for(size_t i = 0; i != pArr.size(); ++i) {
+        check(i);
+    }
+}
+
 DEFINE_FUNCTION_CALL_TEST_2(scalbn);
 DEFINE_FUNCTION_CALL_TEST_2(scalbnf);
 DEFINE_FUNCTION_CALL_TEST_2(scalbnl);

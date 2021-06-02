@@ -81,17 +81,11 @@ private:
         size_t rows;
 
         inline constexpr decltype(auto) operator[](size_t i) const noexcept {
-            if(data.empty())
-                return data[-1];
-            auto cols = (data.size()/rows); 
-            return data[i%cols][i/cols];
+            return data[i];
         }
 
         inline constexpr decltype(auto) operator[](size_t i) noexcept {
-            if(data.empty())
-                return data[-1];
-            auto cols = (data.size()/rows); 
-            return data[i%cols][i/cols];
+            return data[i];
         }
     };
 
@@ -105,6 +99,7 @@ private:
 
     implementation_type m_impl;
     inline constexpr decltype(auto) m_data() const noexcept { return (m_impl.data); }
+    inline constexpr decltype(auto) m_data() noexcept { return (m_impl.data); }
 
     inline constexpr void static_resize(size_t rows, size_t cols) noexcept(is_static) {
         if constexpr(is_dynamic) {
@@ -115,13 +110,7 @@ private:
         } else if constexpr(has_dynamic_rows) {
             std::for_each(m_data().begin(), m_data().end(), [](auto& row) { row.resize(static_rows); });
         }
-    }    // if constexpr(std::same_as<T1, T2>) {
-    //     if(p1 == p2) {
-    //         return true;
-    //     } else {
-    //         return p1->m1
-    //     }
-    // }
+    }
 
     inline constexpr void static_resize() noexcept(is_static) {
         static_resize(static_rows, static_cols);
@@ -432,7 +421,7 @@ public:
             // case. This can be evaluated directly at compile time, since every expression either requires a fixed state in its evaluation
             // or it does not. The tree can be traversed to highlight if this happens or not.
             
-            // TODO Unfortunately, evaluating if the expression ```actually``` leads to a state invalidation is not possible at compile time.
+            // Unfortunately, evaluating if the expression ```actually``` leads to a state invalidation is not possible at compile time.
             // Suppose this:
             //     C = cross(A, B)
             // there is no state invalidation here even if the cross product requires a fixed state of its operands.
@@ -442,11 +431,11 @@ public:
             // Either one or both the ways may be used, if a performance evaluation is done with a parameterization on the input types.
             // (e.g. for small sized matrices a copy may be faster than traversing a deep tree, 
             // viceversa if the tree height is small traversing it may be faster than creating a (suppose) 128*128 doubles temporary and copying it)
-
+            // TODO add an if constexpr to skip the reference check for deep trees
             if(linalg::utils::expression_reference_check_state_invalidation(this, &m)) {
-                std::cout << "state invalidation detected, using temporary" << std::endl;
+                // std::cout << "state invalidation detected, using temporary" << std::endl;
                 Matrix tmp {m};
-                std::copy(m.elements_view().begin(), m.elements_view().end(), elements_view().begin());
+                std::copy(tmp.elements_view().begin(), tmp.elements_view().end(), elements_view().begin());
             } else {
                 std::copy(m.elements_view().begin(), m.elements_view().end(), elements_view().begin());
             }
@@ -514,7 +503,7 @@ public:
 
     inline constexpr size_t cols() const noexcept {
         if constexpr(is_dynamic) {
-            return m_data().size();
+            return m_data().size()/m_impl.rows;
         } else if constexpr(has_dynamic_cols) {
             return m_data()[0].size();
         } else {

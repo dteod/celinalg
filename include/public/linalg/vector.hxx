@@ -530,6 +530,294 @@ public:
     }
 };
 
+template<vector V1, vector V2, typename Scalar, std::invocable<typename V1::value_type, typename V2::value_type, Scalar> F> requires(suitable_vector_expression<V1, V2> && !vector<Scalar>)
+class VectorVectorScalarFunction {
+public:
+    inline constexpr static bool is_temporary { true };
+    inline constexpr static size_t static_size { dynamic_vector<V1> || dynamic_vector<V2> ? 0 : V1::static_size };
+    using value_type = std::invoke_result_t<F, typename V1::value_type, typename V2::value_type, Scalar>;
+private:
+    std::conditional_t<V1::is_temporary, V1, V1&> v1;
+    std::conditional_t<V2::is_temporary, V2, V2&> v2;
+    Scalar s;
+    template<typename Element, typename IndexPicker> requires(container<Element> && expression_participant<Element>) friend class detail::linear_element_iterator;
+    inline constexpr decltype(auto) pick(size_t index) const noexcept { return F{}(v1[index], v2[index], s); }
+    inline constexpr decltype(auto) pick(size_t index) noexcept { return F{}(v1[index], v2[index], s); }
+public:
+    using iterator = detail::linear_element_iterator<VectorVectorScalarFunction>;
+    constexpr VectorVectorScalarFunction(V1& v1, V2& v2, Scalar s) noexcept: v1{v1}, v2{v2}, s{s} {}
+
+    inline constexpr size_t size() const noexcept(!(dynamic_vector<V1> || dynamic_vector<V2>)) {
+        if constexpr(dynamic_vector<V1> || dynamic_vector<V2>) {
+            if(v1.size() != v2.size())
+                throw std::runtime_error("VectorVectorScalarFunction: size mismatch");
+        }
+        return v1.size(); 
+    }
+    inline constexpr decltype(auto) operator[](size_t index) const noexcept { return pick(index); }
+    inline constexpr decltype(auto) at(size_t index) const { if(index < v1.size()) return pick(index); else throw std::out_of_range("VectorVectorScalarFunction"); }
+
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
+};
+
+template<vector V1, typename Scalar, vector V2, std::invocable<typename V1::value_type, Scalar, typename V2::value_type> F> requires(suitable_vector_expression<V1, V2> && !vector<Scalar>)
+class VectorScalarVectorFunction {
+public:
+    inline constexpr static bool is_temporary { true };
+    inline constexpr static size_t static_size { dynamic_vector<V1> || dynamic_vector<V2> ? 0 : V1::static_size };
+    using value_type = std::invoke_result_t<F, typename V1::value_type, Scalar, typename V2::value_type>;
+private:
+    std::conditional_t<V1::is_temporary, V1, V1&> v1;
+    Scalar s;
+    std::conditional_t<V2::is_temporary, V2, V2&> v2;
+    template<typename Element, typename IndexPicker> requires(container<Element> && expression_participant<Element>) friend class detail::linear_element_iterator;
+    inline constexpr decltype(auto) pick(size_t index) const noexcept { return F{}(v1[index], s, v2[index]); }
+    inline constexpr decltype(auto) pick(size_t index) noexcept { return F{}(v1[index], s, v2[index]); }
+public:
+    using iterator = detail::linear_element_iterator<VectorScalarVectorFunction>;
+    constexpr VectorScalarVectorFunction(V1& v1, Scalar s, V2& v2) noexcept: v1{v1}, s{s}, v2{v2} {}
+
+    inline constexpr size_t size() const noexcept(!(dynamic_vector<V1> || dynamic_vector<V2>)) {
+        if constexpr(dynamic_vector<V1> || dynamic_vector<V2>) {
+            if(v1.size() != v2.size())
+                throw std::runtime_error("VectorScalarVectorFunction: size mismatch");
+        }
+        return v1.size(); 
+    }
+    inline constexpr decltype(auto) operator[](size_t index) const noexcept { return pick(index); }
+    inline constexpr decltype(auto) at(size_t index) const { if(index < v1.size()) return pick(index); else throw std::out_of_range("VectorScalarVectorFunction"); }
+
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
+};
+
+template<typename Scalar, vector V1, vector V2, std::invocable<Scalar, typename V1::value_type, typename V2::value_type> F> requires(suitable_vector_expression<V1, V2> && !vector<Scalar>)
+class ScalarVectorVectorFunction {
+public:
+    inline constexpr static bool is_temporary { true };
+    inline constexpr static size_t static_size { dynamic_vector<V1> || dynamic_vector<V2> ? 0 : V1::static_size };
+    using value_type = std::invoke_result_t<F, Scalar, typename V1::value_type, typename V2::value_type>;
+private:
+    Scalar s;
+    std::conditional_t<V1::is_temporary, V1, V1&> v1;
+    std::conditional_t<V2::is_temporary, V2, V2&> v2;
+    template<typename Element, typename IndexPicker> requires(container<Element> && expression_participant<Element>) friend class detail::linear_element_iterator;
+    inline constexpr decltype(auto) pick(size_t index) const noexcept { return F{}(s, v1[index], v2[index]); }
+    inline constexpr decltype(auto) pick(size_t index) noexcept { return F{}(s, v1[index], v2[index]); }
+public:
+    using iterator = detail::linear_element_iterator<ScalarVectorVectorFunction>;
+    constexpr ScalarVectorVectorFunction(Scalar s, V1& v1, V2& v2) noexcept: s{s}, v1{v1}, v2{v2} {}
+
+    inline constexpr size_t size() const noexcept(!(dynamic_vector<V1> || dynamic_vector<V2>)) {
+        if constexpr(dynamic_vector<V1> || dynamic_vector<V2>) {
+            if(v1.size() != v2.size())
+                throw std::runtime_error("ScalarVectorVectorFunction: size mismatch");
+        }
+        return v1.size(); 
+    }
+    inline constexpr decltype(auto) operator[](size_t index) const noexcept { return pick(index); }
+    inline constexpr decltype(auto) at(size_t index) const { if(index < v1.size()) return pick(index); else throw std::out_of_range("ScalarVectorVectorFunction"); }
+
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
+};
+
+template<typename Scalar1, typename Scalar2, vector V, std::invocable<Scalar1, Scalar2, typename V::value_type> F> requires(!(vector<Scalar1> || vector<Scalar2>) )
+class ScalarScalarVectorFunction {
+public:
+    inline constexpr static bool is_temporary { true };
+    inline constexpr static size_t static_size { V::static_size };
+    using value_type = std::invoke_result_t<F, Scalar1, Scalar2, typename V::value_type>;
+private:
+    Scalar1 s1;
+    Scalar2 s2;
+    std::conditional_t<V::is_temporary, V, V&> v;
+    template<typename Element, typename IndexPicker> requires(container<Element> && expression_participant<Element>) friend class detail::linear_element_iterator;
+    inline constexpr decltype(auto) pick(size_t index) const noexcept { return F{}(s1, s2, v[index]); }
+    inline constexpr decltype(auto) pick(size_t index) noexcept { return F{}(s1, s2, v[index]); }
+public:
+    using iterator = detail::linear_element_iterator<ScalarScalarVectorFunction>;
+    constexpr ScalarScalarVectorFunction(Scalar1 s1, Scalar2 s2, V& v) noexcept: s1{s1}, s2{s2}, v{v} {}
+
+    inline constexpr size_t size() const noexcept(noexcept(v.size())) {
+        return v.size(); 
+    }
+    inline constexpr decltype(auto) operator[](size_t index) const noexcept { return pick(index); }
+    inline constexpr decltype(auto) at(size_t index) const { if(index < v.size()) return pick(index); else throw std::out_of_range("ScalarScalarVectorFunction"); }
+
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
+};
+
+template<typename Scalar1, vector V, typename Scalar2, std::invocable<Scalar1, typename V::value_type, Scalar2> F> requires(!(vector<Scalar1> || vector<Scalar2>) )
+class ScalarVectorScalarFunction {
+public:
+    inline constexpr static bool is_temporary { true };
+    inline constexpr static size_t static_size { V::static_size };
+    using value_type = std::invoke_result_t<F, Scalar1, typename V::value_type, Scalar2>;
+private:
+    Scalar1 s1;
+    std::conditional_t<V::is_temporary, V, V&> v;
+    Scalar2 s2;
+    template<typename Element, typename IndexPicker> requires(container<Element> && expression_participant<Element>) friend class detail::linear_element_iterator;
+    inline constexpr decltype(auto) pick(size_t index) const noexcept { return F{}(s1, v[index], s2); }
+    inline constexpr decltype(auto) pick(size_t index) noexcept { return F{}(s1, v[index], s2); }
+public:
+    using iterator = detail::linear_element_iterator<ScalarVectorScalarFunction>;
+    constexpr ScalarVectorScalarFunction(Scalar1 s1, V& v, Scalar2 s2) noexcept: s1{s1}, v{v}, s2{s2} {}
+
+    inline constexpr size_t size() const noexcept(noexcept(v.size())) {
+        return v.size(); 
+    }
+    inline constexpr decltype(auto) operator[](size_t index) const noexcept { return pick(index); }
+    inline constexpr decltype(auto) at(size_t index) const { if(index < v.size()) return pick(index); else throw std::out_of_range("ScalarVectorScalarFunction"); }
+
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
+};
+
+template<vector V, typename Scalar1, typename Scalar2, std::invocable<typename V::value_type, Scalar1, Scalar2> F> requires(!(vector<Scalar1> || vector<Scalar2>) )
+class VectorScalarScalarFunction {
+public:
+    inline constexpr static bool is_temporary { true };
+    inline constexpr static size_t static_size { V::static_size };
+    using value_type = std::invoke_result_t<F, typename V::value_type, Scalar1, Scalar2>;
+private:
+    std::conditional_t<V::is_temporary, V, V&> v;
+    Scalar1 s1;
+    Scalar2 s2;
+    template<typename Element, typename IndexPicker> requires(container<Element> && expression_participant<Element>) friend class detail::linear_element_iterator;
+    inline constexpr decltype(auto) pick(size_t index) const noexcept { return F{}(v[index], s1, s2); }
+    inline constexpr decltype(auto) pick(size_t index) noexcept { return F{}(v[index], s1, s2); }
+public:
+    using iterator = detail::linear_element_iterator<VectorScalarScalarFunction>;
+    constexpr VectorScalarScalarFunction(V& v, Scalar1 s1, Scalar2 s2) noexcept: v{v}, s1{s1}, s2{s2} {}
+
+    inline constexpr size_t size() const noexcept(noexcept(v.size())) {
+        return v.size(); 
+    }
+    inline constexpr decltype(auto) operator[](size_t index) const noexcept { return pick(index); }
+    inline constexpr decltype(auto) at(size_t index) const { if(index < v.size()) return pick(index); else throw std::out_of_range("VectorScalarScalarFunction"); }
+
+    inline constexpr auto begin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto cbegin() const noexcept { return const_iterator(*this, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(const_iterator(*this, 0)); }
+    inline constexpr auto end() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto cend() const noexcept { return const_iterator(*this, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(const_iterator(*this, size())); }
+
+    inline constexpr auto begin() noexcept { return iterator(*this, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(*this, 0)); }
+    inline constexpr auto end() noexcept { return iterator(*this, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(*this, size())); }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin = 0) const noexcept {
+        return detail::VectorView(*this, begin);
+    }
+
+    [[nodiscard]] inline constexpr auto subvector(size_t begin, size_t end) const noexcept {
+        return detail::VectorView(*this, begin, end);
+    }
+};
+
 
 template<vector V, typename Container, std::invocable<typename V::value_type, typename Container::value_type> F>
 class VectorContainerFunction {
@@ -686,7 +974,7 @@ inline constexpr auto concat(V1& v1, V2& v2) noexcept { return detail::VectorCon
 
 #define LINALG_DECLARE_FUNCTION(NAME)                                                                                           \
 namespace detail {                                                                                                       \
-    inline constexpr auto NAME = [](auto&& x) constexpr noexcept { return ::std::NAME(std::forward<decltype(x)>(x)); };  \
+    inline constexpr auto NAME = [](auto&& x) constexpr noexcept { return math::NAME(std::forward<decltype(x)>(x)); };  \
 }                                                                                                                        \
 template<vector V> inline constexpr auto NAME(const V& v) noexcept {                                                     \
     return detail::UnaryVectorFunction<const V, decltype(detail::NAME)>(v);                                              \
@@ -695,7 +983,7 @@ template<vector V> inline constexpr auto NAME(const V& v) noexcept {            
 #define LINALG_DECLARE_FUNCTION_2(NAME)                                                                                                                                                                                                                    \
 namespace detail {                                                                                                      \
     inline constexpr auto NAME = [](auto&& x, auto&& y) constexpr noexcept {                                            \
-        return ::std::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));                                 \
+        return math::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));                                 \
     };                                                                                                                  \
 }                                                                                                                       \
 template<vector V1, vector V2>                                                                                          \
@@ -711,20 +999,38 @@ inline constexpr auto NAME(Scalar scalar, const V& v) noexcept {                
     return detail::ScalarVectorFunction<Scalar, const V, decltype(detail::NAME)>{ scalar, v };                          \
 }
 
-#define LINALG_DECLARE_FUNCTION_3(NAME)                                                                                 \
-namespace detail {                                                                                                      \
-    inline constexpr auto NAME = [](auto&& x, auto&& y, auto&& z) constexpr noexcept {                                  \
-        return ::std::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y), std::forward<decltype(z)>(z));   \
-    };                                                                                                                  \
-}                                                                                                                       \
-template<vector V1, vector V2, vector V3> inline constexpr auto NAME(const V1& v1, const V2& v2, const V3& v3) {        \
-    return detail::TernaryVectorFunction<const V1, const V2, const V3, decltype(detail::NAME)>(v1, v2, v3);             \
+#define LINALG_DECLARE_FUNCTION_3(NAME)                                                                                             \
+namespace detail {                                                                                                                  \
+    inline constexpr auto NAME = [](auto&& x, auto&& y, auto&& z) constexpr noexcept {                                              \
+        return math::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y), std::forward<decltype(z)>(z));               \
+    };                                                                                                                              \
+}                                                                                                                                   \
+template<vector V1, vector V2, vector V3> inline constexpr auto NAME(const V1& v1, const V2& v2, const V3& v3) {                    \
+    return detail::TernaryVectorFunction<const V1, const V2, const V3, decltype(detail::NAME)>(v1, v2, v3);                         \
+}                                                                                                                                   \
+template<vector V1, vector V2, typename Scalar> requires(!vector<Scalar>) inline constexpr auto NAME(const V1& v1, const V2& v2, Scalar s) {                  \
+    return detail::VectorVectorScalarFunction<const V1, const V2, Scalar, decltype(detail::NAME)>(v1, v2, s);                       \
+}                                                                                                                                   \
+template<vector V1, typename Scalar, vector V2> requires(!vector<Scalar>) inline constexpr auto NAME(const V1& v1, Scalar s, const V2& v2) {                  \
+    return detail::VectorScalarVectorFunction<const V1, Scalar, const V2, decltype(detail::NAME)>(v1, s, v2);                       \
+}                                                                                                                                   \
+template<typename Scalar, vector V1, vector V2> requires(!vector<Scalar>) inline constexpr auto NAME(Scalar s, const V1& v1, const V2& v2) {                  \
+    return detail::ScalarVectorVectorFunction<Scalar, const V1, const V2, decltype(detail::NAME)>(s, v1, v2);                       \
+}                                                                                                                                   \
+template<vector V, typename Scalar1, typename Scalar2> requires(!(vector<Scalar1> || vector<Scalar2>)) inline constexpr auto NAME(const V& v, Scalar1 s1, Scalar2 s2) {             \
+    return detail::VectorScalarScalarFunction<const V, Scalar1, Scalar2, decltype(detail::NAME)>(v, s1, s2);                        \
+}                                                                                                                                   \
+template<typename Scalar1, vector V, typename Scalar2> requires(!(vector<Scalar1> || vector<Scalar2>)) inline constexpr auto NAME(Scalar1 s1, const V& v, Scalar2 s2) {             \
+    return detail::ScalarVectorScalarFunction<Scalar1, const V, Scalar2, decltype(detail::NAME)>(s1, v, s2);                        \
+}                                                                                                                                   \
+template<typename Scalar1, typename Scalar2, vector V> requires(!(vector<Scalar1> || vector<Scalar2>)) inline constexpr auto NAME(Scalar1 s1, Scalar2 s2, const V& v) {             \
+    return detail::ScalarScalarVectorFunction<Scalar1, Scalar2, const V, decltype(detail::NAME)>(s1, s2, v);                        \
 }
 
 #define LINALG_DECLARE_FUNCTION_2_CONTAINER(NAME)                                                       \
 namespace detail {                                                                                      \
     inline constexpr auto NAME = [](auto&& x, auto&& y) constexpr noexcept {                            \
-        return ::std::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));                 \
+        return math::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));                 \
     };                                                                                                  \
 }                                                                                                       \
 template<vector V, typename T, size_t N> requires(                                                      \
@@ -741,7 +1047,7 @@ inline constexpr auto NAME(const V& v1, std::vector<T>& v2) noexcept {          
 #define LINALG_DECLARE_FUNCTION_3_CONTAINER(NAME)                                                                           \
 namespace detail {                                                                                                          \
     inline constexpr auto NAME = [](auto&& x, auto&& y, auto&& z) constexpr noexcept {                                      \
-        return ::std::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y), std::forward<decltype(z)>(z));       \
+        return math::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y), std::forward<decltype(z)>(z));       \
     };                                                                                                                      \
 }                                                                                                                           \
 template<vector V1, vector V2, typename T, size_t N> requires(                                                              \

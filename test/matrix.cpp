@@ -5,37 +5,6 @@
 
 using namespace linalg;
 
-SCENARIO("matrix random access") {
-    Matrix m { { // first one is for brace initialization, second one is list-initialization of a std::array
-        {1, 2, 3}, 
-        {4, 5, 6}, 
-        {7, 8, 9}
-    } };
-
-    WHEN("call syntax") {
-        REQUIRE( m(0, 0) == 1 );
-        REQUIRE( m(0, 1) == 2 );
-        REQUIRE( m(0, 2) == 3 );
-        REQUIRE( m(1, 0) == 4 );
-        REQUIRE( m(1, 1) == 5 );
-        REQUIRE( m(1, 2) == 6 );
-        REQUIRE( m(2, 0) == 7 );
-        REQUIRE( m(2, 1) == 8 );
-        REQUIRE( m(2, 2) == 9 );
-    }
-    
-    WHEN("subscript syntax") {
-        REQUIRE( m[0][0] == 1 );
-        REQUIRE( m[0][1] == 2 );
-        REQUIRE( m[0][2] == 3 );
-        REQUIRE( m[1][0] == 4 );
-        REQUIRE( m[1][1] == 5 );
-        REQUIRE( m[1][2] == 6 );
-        REQUIRE( m[2][0] == 7 );
-        REQUIRE( m[2][1] == 8 );
-        REQUIRE( m[2][2] == 9 );
-    }
-}
 
 SCENARIO("matrix iterators") {
     Matrix m { { // first one is for brace initialization, second one is list-initialization of a std::array

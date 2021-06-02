@@ -165,7 +165,7 @@ public:
         using reference = decltype(std::declval<iterator>()[std::declval<size_t>()]);
         using iterator_category = std::random_access_iterator_tag;
     };
-    inline constexpr MatrixDimensionView(M& m, size_t index) noexcept: m{m}, m_index{index} {}
+    constexpr MatrixDimensionView(M& m, size_t index) noexcept: m{m}, m_index{index} {}
 
     inline constexpr decltype(auto) operator[](size_t index) const noexcept { return m.pick(index + forward_size()*m_index); }
     inline constexpr decltype(auto) operator[](size_t index) noexcept requires(!std::is_const_v<M>) { return m.pick(index + forward_size()*m_index); }
@@ -175,8 +175,8 @@ public:
     inline constexpr size_t size() const noexcept { return transversal_size(); } 
 
     template<vector T>
-    inline constexpr decltype(auto) operator=(T&& t) noexcept requires (!(M::is_temporary || std::is_const_v<M>) && suitable_vector_expression<MatrixDimensionView, std::decay_t<T>>) {
-        if constexpr(!(M::is_temporary || std::is_const_v<M>)) {
+    inline constexpr decltype(auto) operator=(T&& t) noexcept requires (!(M::is_expression || std::is_const_v<M>) && suitable_vector_expression<MatrixDimensionView, std::decay_t<T>>) {
+        if constexpr(!(M::is_expression || std::is_const_v<M>)) {
             std::copy(begin(), end(), t.begin());
         } else throw std::logic_error("MatrixDimensionView<M>::operator=: M is const");
         return (*this);
@@ -348,19 +348,19 @@ public:
         }
     }
 
-    inline constexpr auto begin() const { return iterator(m, 0); }
-    inline constexpr auto cbegin() const { return iterator(m, 0); }
-    inline constexpr auto rbegin() const { return std::reverse_iterator(iterator(m, 0)); }
-    inline constexpr auto crbegin() const { return std::reverse_iterator(iterator(m, 0)); }
-    inline constexpr auto end() const { return iterator(m, size()); }
-    inline constexpr auto cend() const { return iterator(m, size()); }
-    inline constexpr auto rend() const { return std::reverse_iterator(iterator(m, size())); }
-    inline constexpr auto crend() const { return std::reverse_iterator(iterator(m, size())); }
+    inline constexpr auto begin() const noexcept { return iterator(m, 0); }
+    inline constexpr auto cbegin() const noexcept { return iterator(m, 0); }
+    inline constexpr auto rbegin() const noexcept { return std::reverse_iterator(iterator(m, 0)); }
+    inline constexpr auto crbegin() const noexcept { return std::reverse_iterator(iterator(m, 0)); }
+    inline constexpr auto end() const noexcept { return iterator(m, size()); }
+    inline constexpr auto cend() const noexcept { return iterator(m, size()); }
+    inline constexpr auto rend() const noexcept { return std::reverse_iterator(iterator(m, size())); }
+    inline constexpr auto crend() const noexcept { return std::reverse_iterator(iterator(m, size())); }
 
-    inline constexpr auto begin() { return iterator(m, 0); }
-    inline constexpr auto rbegin() { return std::reverse_iterator(iterator(m, 0)); }
-    inline constexpr auto end() { return iterator(m, size()); }
-    inline constexpr auto rend() { return std::reverse_iterator(iterator(m, size())); }
+    inline constexpr auto begin() noexcept { return iterator(m, 0); }
+    inline constexpr auto rbegin() noexcept { return std::reverse_iterator(iterator(m, 0)); }
+    inline constexpr auto end() noexcept { return iterator(m, size()); }
+    inline constexpr auto rend() noexcept { return std::reverse_iterator(iterator(m, size())); }
 };
 
 template<matrix M, MatrixDimension Dim>

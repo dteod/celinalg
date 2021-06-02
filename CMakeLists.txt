@@ -16,8 +16,9 @@ target_compile_definitions(linalg PUBLIC
     $<$<AND:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_VERSION:12.0.0>>:LINALG_USE_CONSTEXPR_VECTOR_COMPILER=1>
 )
 target_compile_options(linalg PUBLIC -fconcepts-diagnostics-depth=5)
-target_link_libraries(linalg PUBLIC utils)
+target_link_libraries(linalg PUBLIC utils gcem)
 
 create_test(vector)
 create_test(matrix)
 create_test(mat)
+# create_test(mat2)
