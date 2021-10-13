@@ -3,9 +3,11 @@
 #include <cmath>
 #include <bit>
 
-#include <traits.hpp>
+#include "celinalg/common_type.hpp"
+#include "celinalg/number_type.hpp"
+#include "celinalg/numeric_traits.hpp"
 
-namespace linalg {
+namespace celinalg {
 
 namespace detail {
     

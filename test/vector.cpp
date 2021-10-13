@@ -1,23 +1,17 @@
 #define CATCH_CONFIG_MAIN
 
 #include <catch2/catch.hpp>
-#include <linalg/vector.hpp>
-#include <traits.hpp>
+#include <celinalg/vector.hpp>
 
-using namespace linalg;
+using namespace celinalg;
 
 #define TYPE_PARAMETER_LIST \
-    uint8_t, uint16_t, uint32_t, uint64_t, __uint128_t, int8_t, int16_t, int32_t, int64_t, __int128_t, float, double,          \
+    uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double,        \
     std::complex<uint8_t>, std::complex<uint16_t>, std::complex<uint32_t>, std::complex<uint64_t>,  \
-    std::complex<int8_t>, std::complex<int16_t>, std::complex<int32_t>, std::complex<int64_t>,    \
+    std::complex<int8_t>, std::complex<int16_t>, std::complex<int32_t>, std::complex<int64_t>,      \
     std::complex<float>, std::complex<double>
 
-// Notice that these tests won't work with std::complex<__int128_t> and std::complex<__uint128_t>.
-// The reason is that there is no "int256_t" that we can bitcast to a complex of 128-bit type.
-// Where are you gonna use it, anyways?
-
-
-TEMPLATE_TEST_CASE("vector instantiation", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector instantiation", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     if constexpr(std::same_as<TestType, int>) {
         Vector<int, 3> v {1, 2, 3};
     } else if constexpr(std::same_as<TestType, double>) {
@@ -28,7 +22,7 @@ TEMPLATE_TEST_CASE("vector instantiation", "[linalg][vector]", TYPE_PARAMETER_LI
     }
 }
 
-TEMPLATE_TEST_CASE("ctad-assisted vector instantiation", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("ctad-assisted vector instantiation", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     if constexpr(std::same_as<TestType, int>) {
         Vector v {1, 2, 3};
         static_assert(std::same_as<decltype(v), Vector<int, 3>>);
@@ -41,7 +35,7 @@ TEMPLATE_TEST_CASE("ctad-assisted vector instantiation", "[linalg][vector]", TYP
     }
 }
 
-TEMPLATE_TEST_CASE("vector concatenation", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector concatenation", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v {TestType(1), TestType(2), TestType(3)};
     auto cat_vector = concat(v, v);
     REQUIRE(cat_vector[0] == v[0]);
@@ -61,19 +55,19 @@ TEMPLATE_TEST_CASE("vector concatenation", "[linalg][vector]", TYPE_PARAMETER_LI
     static_assert(decltype(cat_vector)::static_size == 2*Vector<TestType, 3>::static_size);
 }
 
-TEMPLATE_TEST_CASE("subvector instantiation", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("subvector instantiation", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v {TestType(1), TestType(2), TestType(3)};
     auto s = v.subvector(1);
     REQUIRE(s[0] == v[1]);
     REQUIRE(s[1] == v[2]);
 }
 
-TEMPLATE_TEST_CASE("subvector mismatched size", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("subvector mismatched size", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     DynamicVector<TestType> dv {TestType(1), TestType(2), TestType(3), TestType(1), TestType(2), TestType(3)};
     // REQUIRE_THROWS_AS(dv.subvector(1, 8), std::out_of_range); // this should pass but is marked as failed on VSCode for some reasons
 }
 
-TEMPLATE_TEST_CASE("subvector extension", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("subvector extension", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     DynamicVector<TestType> dv {TestType(1), TestType(2), TestType(3), TestType(1), TestType(2), TestType(3)};
     auto dv_s = dv.subvector(1, 3);
     REQUIRE(dv_s.size() == 2);
@@ -91,7 +85,7 @@ TEMPLATE_TEST_CASE("subvector extension", "[linalg][vector]", TYPE_PARAMETER_LIS
     REQUIRE(dv[7] == TestType(3));
 }
 
-TEMPLATE_TEST_CASE("vector element-wise sum", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector element-wise sum", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v {TestType(1), TestType(2), TestType(3)};
 
     auto vv = v+v;
@@ -101,7 +95,7 @@ TEMPLATE_TEST_CASE("vector element-wise sum", "[linalg][vector]", TYPE_PARAMETER
     }
 }
 
-TEMPLATE_TEST_CASE("vector element-wise difference", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector element-wise difference", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v {TestType(1), TestType(2), TestType(3)};
     auto vv = v-v;
 
@@ -110,7 +104,7 @@ TEMPLATE_TEST_CASE("vector element-wise difference", "[linalg][vector]", TYPE_PA
     }
 }
 
-TEMPLATE_TEST_CASE("vector element-wise product", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector element-wise product", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v {TestType(1), TestType(2), TestType(3)};
     auto vv = v*v;
 
@@ -119,7 +113,7 @@ TEMPLATE_TEST_CASE("vector element-wise product", "[linalg][vector]", TYPE_PARAM
     }
 }
 
-TEMPLATE_TEST_CASE("vector element-wise division", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector element-wise division", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v {TestType(1), TestType(2), TestType(3)};
     auto vv = v/v;
 
@@ -128,7 +122,7 @@ TEMPLATE_TEST_CASE("vector element-wise division", "[linalg][vector]", TYPE_PARA
     }
 }
 
-TEMPLATE_TEST_CASE("vector element-wise modulo", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector element-wise modulo", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v {TestType(1), TestType(2), TestType(3)};
     auto vv = v%v;
 
@@ -137,7 +131,7 @@ TEMPLATE_TEST_CASE("vector element-wise modulo", "[linalg][vector]", TYPE_PARAME
     }
 }
 
-TEMPLATE_TEST_CASE("vector element-wise and", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector element-wise and", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector v1 {TestType(1), TestType(2), TestType(3)};
     Vector v2 {TestType(0), TestType(0), TestType(0)};
     auto vv = v1 && v2;
@@ -151,7 +145,7 @@ TEMPLATE_TEST_CASE("vector element-wise and", "[linalg][vector]", TYPE_PARAMETER
     }
 }
 
-TEMPLATE_TEST_CASE("vector element-wise or", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector element-wise or", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector v1 {TestType(1), TestType(2), TestType(3)};
     Vector v2 {TestType(0), TestType(0), TestType(0)};
     auto vv = v1 || v2;
@@ -165,7 +159,7 @@ TEMPLATE_TEST_CASE("vector element-wise or", "[linalg][vector]", TYPE_PARAMETER_
     }
 }
 
-TEMPLATE_TEST_CASE("vector element-wise bitand", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector element-wise bitand", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v {TestType(1), TestType(2), TestType(3)};
     auto vv = v&v;
 
@@ -178,7 +172,7 @@ TEMPLATE_TEST_CASE("vector element-wise bitand", "[linalg][vector]", TYPE_PARAME
     }
 }
 
-TEMPLATE_TEST_CASE("vector element-wise bitor", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector element-wise bitor", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v {TestType(1), TestType(2), TestType(3)};
     auto vv = v|v;
 
@@ -191,7 +185,7 @@ TEMPLATE_TEST_CASE("vector element-wise bitor", "[linalg][vector]", TYPE_PARAMET
     }
 }
 
-TEMPLATE_TEST_CASE("vector element-wise bitxor", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector element-wise bitxor", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v {TestType(1), TestType(2), TestType(3)};
     auto vv = v^v;
 
@@ -204,7 +198,7 @@ TEMPLATE_TEST_CASE("vector element-wise bitxor", "[linalg][vector]", TYPE_PARAME
     }
 }
 
-TEMPLATE_TEST_CASE("vector-scalar sum", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector-scalar sum", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = v + TestType(10);
 
@@ -213,7 +207,7 @@ TEMPLATE_TEST_CASE("vector-scalar sum", "[linalg][vector]", TYPE_PARAMETER_LIST)
     }
 }
 
-TEMPLATE_TEST_CASE("vector-scalar difference", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector-scalar difference", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = v - TestType(10);
 
@@ -222,7 +216,7 @@ TEMPLATE_TEST_CASE("vector-scalar difference", "[linalg][vector]", TYPE_PARAMETE
     }
 }
 
-TEMPLATE_TEST_CASE("vector-scalar product", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector-scalar product", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = v * TestType(10);
 
@@ -231,7 +225,7 @@ TEMPLATE_TEST_CASE("vector-scalar product", "[linalg][vector]", TYPE_PARAMETER_L
     }
 }
 
-TEMPLATE_TEST_CASE("vector-scalar division", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector-scalar division", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = v / TestType(10);
 
@@ -240,7 +234,7 @@ TEMPLATE_TEST_CASE("vector-scalar division", "[linalg][vector]", TYPE_PARAMETER_
     }
 }
 
-TEMPLATE_TEST_CASE("vector-scalar modulo", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector-scalar modulo", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = v % TestType(10);
 
@@ -249,7 +243,7 @@ TEMPLATE_TEST_CASE("vector-scalar modulo", "[linalg][vector]", TYPE_PARAMETER_LI
     }
 }
 
-TEMPLATE_TEST_CASE("vector-scalar and", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector-scalar and", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = v && TestType(10);
 
@@ -262,7 +256,7 @@ TEMPLATE_TEST_CASE("vector-scalar and", "[linalg][vector]", TYPE_PARAMETER_LIST)
     }
 }
 
-TEMPLATE_TEST_CASE("vector-scalar or", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector-scalar or", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = v || TestType(10);
 
@@ -275,7 +269,7 @@ TEMPLATE_TEST_CASE("vector-scalar or", "[linalg][vector]", TYPE_PARAMETER_LIST) 
     }
 }
 
-TEMPLATE_TEST_CASE("vector-scalar bitand", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector-scalar bitand", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = v & TestType(10);
 
@@ -288,7 +282,7 @@ TEMPLATE_TEST_CASE("vector-scalar bitand", "[linalg][vector]", TYPE_PARAMETER_LI
     }
 }
 
-TEMPLATE_TEST_CASE("vector-scalar bitor", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector-scalar bitor", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = v | TestType(10);
 
@@ -301,7 +295,7 @@ TEMPLATE_TEST_CASE("vector-scalar bitor", "[linalg][vector]", TYPE_PARAMETER_LIS
     }
 }
 
-TEMPLATE_TEST_CASE("vector-scalar bitxor", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector-scalar bitxor", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = v ^ TestType(10);
 
@@ -314,7 +308,7 @@ TEMPLATE_TEST_CASE("vector-scalar bitxor", "[linalg][vector]", TYPE_PARAMETER_LI
     }
 }
 
-TEMPLATE_TEST_CASE("vector cross product", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector cross product", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v1{TestType(1), TestType(6), TestType(1)};
     Vector<TestType, 3> v2{TestType(2), TestType(6), TestType(2)};
     auto vp = cprod(v1, v2);
@@ -327,7 +321,7 @@ TEMPLATE_TEST_CASE("vector cross product", "[linalg][vector]", TYPE_PARAMETER_LI
     }
 }
 
-TEMPLATE_TEST_CASE("vector scalar product", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector scalar product", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v1{TestType(1), TestType(2), TestType(3)};
     Vector<TestType, 3> v2{TestType(2), TestType(6), TestType(1)};
     auto vs = sprod(v1, v2);
@@ -345,8 +339,12 @@ namespace {
         //     constexpr std::vector<int> v{1,2,3};
         // because even if operator new is a core constant expression it is not a constant expression per-se.
         // Read this https://www.quora.com/How-do-I-use-the-C-20-constexpr-std-vector?share=1
-        Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
-        return std::accumulate(v.begin(), v.end(), TestType(0));
+        if constexpr(sizeof(TestType) <= sizeof(int)) {
+            Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
+            return std::accumulate(v.begin(), v.end(), TestType(0));
+        } else {
+            return 1;
+        }
     }
 
     template<auto Value>
@@ -357,23 +355,24 @@ namespace {
 
 } 
 
-#if LINALG_USE_CONSTEXPR_VECTOR_COMPILER
+#if CELINALG_USE_CONSTEXPR_VECTOR_COMPILER
 // automatically set by CMake if using the hacked libstdc++
-TEMPLATE_TEST_CASE("constexpr Vector for non-complex types", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("constexpr Vector for non-complex types", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     if constexpr(req::complex<TestType>) {
         // std::complex won't work, it cannot be used as a template non-type parameter since "it is not structural" 
         // even if it has all the characteristics to be used as a structural one.
         // Evaluating it at runtime is ok though
         Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
-        [[maybe_unused]] auto b = std::accumulate(v.begin(), v.end(), TestType(0));
+        auto b = std::accumulate(v.begin(), v.end(), TestType(0));
+        REQUIRE(b == TestType(1+2+3));
     } else {
         [[maybe_unused]] constexpr auto b = Getter<vector_scalar_product_passed<TestType>()>::value;
+        REQUIRE(b == TestType(1+2+3));
     }
-    REQUIRE( true );
 }
 #else
 // 
-TEMPLATE_TEST_CASE("constexpr Vector for stack-allocated objects", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("constexpr Vector for stack-allocated objects", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     if constexpr(req::complex<TestType> || std::same_as<TestType, double> /*allocating 3 doubles requires 24 bytes that go on the heap*/ ) {
         Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
         [[maybe_unused]] auto b = std::accumulate(v.begin(), v.end(), TestType(0));
@@ -387,7 +386,7 @@ TEMPLATE_TEST_CASE("constexpr Vector for stack-allocated objects", "[linalg][vec
 #endif
 
 
-TEMPLATE_TEST_CASE("scalar-vector sum", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("scalar-vector sum", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = TestType(10) + v;
 
@@ -396,7 +395,7 @@ TEMPLATE_TEST_CASE("scalar-vector sum", "[linalg][vector]", TYPE_PARAMETER_LIST)
     }
 }
 
-TEMPLATE_TEST_CASE("scalar-vector difference", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("scalar-vector difference", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = TestType(10) - v;
 
@@ -405,7 +404,7 @@ TEMPLATE_TEST_CASE("scalar-vector difference", "[linalg][vector]", TYPE_PARAMETE
     }
 }
 
-TEMPLATE_TEST_CASE("scalar-vector product", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("scalar-vector product", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = TestType(10) * v;
 
@@ -414,7 +413,7 @@ TEMPLATE_TEST_CASE("scalar-vector product", "[linalg][vector]", TYPE_PARAMETER_L
     }
 }
 
-TEMPLATE_TEST_CASE("scalar-vector division", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("scalar-vector division", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = TestType(10) / v;
 
@@ -423,7 +422,7 @@ TEMPLATE_TEST_CASE("scalar-vector division", "[linalg][vector]", TYPE_PARAMETER_
     }
 }
 
-TEMPLATE_TEST_CASE("scalar-vector modulo", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("scalar-vector modulo", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = TestType(10) % v;
 
@@ -432,7 +431,7 @@ TEMPLATE_TEST_CASE("scalar-vector modulo", "[linalg][vector]", TYPE_PARAMETER_LI
     }
 }
 
-TEMPLATE_TEST_CASE("scalar-vector and", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("scalar-vector and", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = TestType(10) && v;
 
@@ -445,7 +444,7 @@ TEMPLATE_TEST_CASE("scalar-vector and", "[linalg][vector]", TYPE_PARAMETER_LIST)
     }
 }
 
-TEMPLATE_TEST_CASE("scalar-vector or", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("scalar-vector or", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = TestType(10) || v;
 
@@ -458,7 +457,7 @@ TEMPLATE_TEST_CASE("scalar-vector or", "[linalg][vector]", TYPE_PARAMETER_LIST) 
     }
 }
 
-TEMPLATE_TEST_CASE("scalar-vector bitand", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("scalar-vector bitand", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = TestType(10) & v;
 
@@ -471,7 +470,7 @@ TEMPLATE_TEST_CASE("scalar-vector bitand", "[linalg][vector]", TYPE_PARAMETER_LI
     }
 }
 
-TEMPLATE_TEST_CASE("scalar-vector bitor", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("scalar-vector bitor", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = TestType(10) | v;
 
@@ -484,7 +483,7 @@ TEMPLATE_TEST_CASE("scalar-vector bitor", "[linalg][vector]", TYPE_PARAMETER_LIS
     }
 }
 
-TEMPLATE_TEST_CASE("scalar-vector bitxor", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("scalar-vector bitxor", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 3> v{TestType(1), TestType(2), TestType(3)};
     auto vs = TestType(10) ^ v;
 
@@ -497,12 +496,12 @@ TEMPLATE_TEST_CASE("scalar-vector bitxor", "[linalg][vector]", TYPE_PARAMETER_LI
     }
 }
 
-TEMPLATE_TEST_CASE("vector zero-initialized by default", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector zero-initialized by default", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 10> v;
     REQUIRE(std::find_if(v.begin(), v.end(), [](auto& x){ return x != TestType(0); }) == v.end());
 }
 
-TEMPLATE_TEST_CASE("vector generation", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector generation", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 10> v;
     if constexpr(req::complex<TestType>) {
         // no operator++ for std::complex
@@ -516,14 +515,14 @@ TEMPLATE_TEST_CASE("vector generation", "[linalg][vector]", TYPE_PARAMETER_LIST)
     }
 }
 
-TEMPLATE_TEST_CASE("iterator has direct access", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("iterator has direct access", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 10> v;
     for(size_t i = 0; auto& x : v) {
         REQUIRE(std::addressof(x) == std::addressof(v[i++]));
     }
 }
 
-TEMPLATE_TEST_CASE("vector accumulate", "[linalg][vector]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("vector accumulate", "[celinalg][vector]", TYPE_PARAMETER_LIST) {
     Vector<TestType, 10> v;
     if constexpr(req::complex<TestType>) {
         // no operator++ for std::complex
@@ -535,7 +534,7 @@ TEMPLATE_TEST_CASE("vector accumulate", "[linalg][vector]", TYPE_PARAMETER_LIST)
     REQUIRE(std::accumulate(v.begin(), v.end(), TestType(0)) == TestType(55));
 }
 
-TEST_CASE("vector math functions - abs/fabs", "[linalg][vector]") {
+TEST_CASE("vector math functions - abs/fabs", "[celinalg][vector]") {
     Vector v{1, 2, 5, -6, -1, 0, 0, 4, -4, 8};
     {
         auto fcn = abs(v);
@@ -566,7 +565,7 @@ TEST_CASE("vector math functions - abs/fabs", "[linalg][vector]") {
     
 }
 
-TEST_CASE("vector math functions - fmod", "[linalg][vector]") {
+TEST_CASE("vector math functions - fmod", "[celinalg][vector]") {
     Vector v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.};
 
     auto fcn = fmod(v1, v2);
@@ -577,7 +576,7 @@ TEST_CASE("vector math functions - fmod", "[linalg][vector]") {
     REQUIRE(fcn[4] == fmod(v1[4], v2[4]));
 }
 
-TEST_CASE("vector math functions - remainder", "[linalg][vector]") {
+TEST_CASE("vector math functions - remainder", "[celinalg][vector]") {
     Vector v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.};
 
     auto fcn = remainder(v1, v2);
@@ -588,7 +587,7 @@ TEST_CASE("vector math functions - remainder", "[linalg][vector]") {
     REQUIRE(fcn[4] == remainder(v1[4], v2[4]));
 }
 
-TEST_CASE("vector math functions - remquo", "[linalg][vector]") {
+TEST_CASE("vector math functions - remquo", "[celinalg][vector]") {
     Vector v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.};
     std::array<int, 5> arr{};
     std::array<int*, 5> pArr;
@@ -597,9 +596,8 @@ TEST_CASE("vector math functions - remquo", "[linalg][vector]") {
     auto fcn = remquo(v1, v2, pArr);
 
     int buffer = 13094948;
-    auto check = [&](int i) {
-        fcn[i];
-        remquo(v1[i], v2[i], &buffer);
+    auto check = [&](size_t i) {
+        REQUIRE(fcn[i] == remquo(v1[i], v2[i], &buffer));
         REQUIRE(arr[i] == buffer); 
     };
     for(size_t i = 0; i != pArr.size(); ++i) {
@@ -608,7 +606,7 @@ TEST_CASE("vector math functions - remquo", "[linalg][vector]") {
 }
 
 
-TEST_CASE("vector math functions - fma", "[linalg][vector]") {
+TEST_CASE("vector math functions - fma", "[celinalg][vector]") {
     Vector v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.}, v3{10., 7., -0.5, 33.6, std::numbers::pi};
     auto out = fma(v1, v2, v3);
     for(size_t i = 0; i != v1.size(); ++i) {
@@ -617,7 +615,7 @@ TEST_CASE("vector math functions - fma", "[linalg][vector]") {
 }
 
 #define DEFINE_FUNCTION_CALL_TEST_1(FUNCTION)                           \
-TEST_CASE("vector math functions - " #FUNCTION, "[linalg][vector]") {   \
+TEST_CASE("vector math functions - " #FUNCTION, "[celinalg][vector]") {   \
     Vector v{1., 2., 5., -6., -1.};                  \
     auto out = FUNCTION(v);                                     \
     for(size_t i = 0; i != v.size(); ++i) {                     \
@@ -630,7 +628,7 @@ TEST_CASE("vector math functions - " #FUNCTION, "[linalg][vector]") {   \
 }
 
 #define DEFINE_FUNCTION_CALL_TEST_2(FUNCTION)                                \
-TEST_CASE("vector math functions - " #FUNCTION, "[linalg][vector]") {               \
+TEST_CASE("vector math functions - " #FUNCTION, "[celinalg][vector]") {               \
     Vector v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.};   \
     auto out = FUNCTION(v1, v2);                                             \
     for(size_t i = 0; i != v1.size(); ++i) {                                 \
@@ -643,16 +641,28 @@ TEST_CASE("vector math functions - " #FUNCTION, "[linalg][vector]") {           
 }
 
 #define DEFINE_FUNCTION_CALL_TEST_3(FUNCTION)                                                                           \
-TEST_CASE("vector math functions - " #FUNCTION, "[linalg][vector]") {                                                          \
+TEST_CASE("vector math functions - " #FUNCTION, "[celinalg][vector]") {                                                          \
     Vector v1{1., 2., 5., -6., -1.}, v2{0.1, 0.5, 4., -4., 8.}, v3{10., 7., -0.5, 33.6, std::numbers::pi};   \
-    auto out = FUNCTION(v1, v2, v3);                                                                                    \
-    for(size_t i = 0; i != v1.size(); ++i) {                                                                            \
-        if(std::isnan(out[i])) {                                                                                        \
-            REQUIRE(std::isnan(std::FUNCTION(v1[i], v2[i], v3[i])));                                                    \
-        } else {                                                                                                        \
-            REQUIRE(out[i] == std::FUNCTION(v1[i], v2[i], v3[i]));                                                      \
-        }                                                                                                               \
-    }                                                                                                                   \
+    {\
+        auto out = FUNCTION(v1, v2, v3);                                                                                    \
+        for(size_t i = 0; i != v1.size(); ++i) {                                                                            \
+            if(std::isnan(out[i])) {                                                                                        \
+                REQUIRE(std::isnan(std::FUNCTION(v1[i], v2[i], v3[i])));                                                    \
+            } else {                                                                                                        \
+                REQUIRE(out[i] == std::FUNCTION(v1[i], v2[i], v3[i]));                                                      \
+            }                                                                                                               \
+        }                                                                                                                   \
+    }\
+    {\
+        auto out = FUNCTION(v1, v2, 10.0);                                                                                    \
+        for(size_t i = 0; i != v1.size(); ++i) {                                                                            \
+            if(std::isnan(out[i])) {                                                                                        \
+                REQUIRE(std::isnan(std::FUNCTION(v1[i], v2[i], 10)));                                                    \
+            } else {                                                                                                        \
+                REQUIRE(out[i] == std::FUNCTION(v1[i], v2[i], 10));                                                      \
+            }                                                                                                               \
+        }                                                                                                                   \
+    }\
 }
 
 
@@ -743,9 +753,56 @@ DEFINE_FUNCTION_CALL_TEST_1(lrintl);
 DEFINE_FUNCTION_CALL_TEST_1(llrint);
 DEFINE_FUNCTION_CALL_TEST_1(llrintf);
 DEFINE_FUNCTION_CALL_TEST_1(llrintl);
-// DEFINE_FUNCTION_CALL_TEST_2(frexp);
-// DEFINE_FUNCTION_CALL_TEST_2(ldexp);
-// DEFINE_FUNCTION_CALL_TEST_2(modf);
+
+
+TEST_CASE("vector math functions - frexp", "[celinalg][vector]") {
+    Vector v{1., 2., 5., -6., -1.};
+    std::array<int, 5> arr{};
+    std::array<int*, 5> pArr;
+    std::transform(arr.begin(), arr.end(), pArr.begin(), [](int& v) { return &v; }); 
+
+    auto fcn = frexp(v, pArr);
+
+    int buffer = 13094948;
+    auto check = [&](size_t i) {
+        REQUIRE(fcn[i] == frexp(v[i], &buffer));
+        REQUIRE(arr[i] == buffer); 
+    };
+    for(size_t i = 0; i != pArr.size(); ++i) {
+        check(i);
+    }
+}
+
+TEST_CASE("vector math functions - ldexp", "[celinalg][vector]") {
+    Vector v{1., 2., 5., -6., -1.};
+    std::array<int, 5> arr{1, 2, 3, 4, 5};
+    auto fcn = ldexp(v, arr);
+    auto check = [&](size_t i) {
+        REQUIRE(fcn[i] == ldexp(v[i], arr[i]));
+    };
+    for(size_t i = 0; i != arr.size(); ++i) {
+        check(i);
+    }
+}
+
+TEST_CASE("vector math functions - modf", "[celinalg][vector]") {
+    Vector v{1., 2., 5., -6., -1.};
+    std::array<double, 5> arr{};
+    std::array<double*, 5> pArr;
+    std::transform(arr.begin(), arr.end(), pArr.begin(), [](double& v) { return &v; }); 
+
+    auto fcn = modf(v, pArr);
+
+    double buffer = 13094948;
+    auto check = [&](size_t i) {
+        REQUIRE(fcn[i] == modf(v[i], &buffer));
+        REQUIRE(arr[i] == buffer); 
+    };
+    for(size_t i = 0; i != pArr.size(); ++i) {
+        check(i);
+    }
+}
+
 DEFINE_FUNCTION_CALL_TEST_2(scalbn);
 DEFINE_FUNCTION_CALL_TEST_2(scalbnf);
 DEFINE_FUNCTION_CALL_TEST_2(scalbnl);

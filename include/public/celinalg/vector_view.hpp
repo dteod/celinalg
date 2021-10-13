@@ -3,7 +3,7 @@
 #include <limits>
 #include <algorithm>
 
-namespace linalg::detail {
+namespace celinalg::detail {
 
 template<vector V>
 class VectorView {

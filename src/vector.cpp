@@ -1,35 +1,36 @@
 // Uncomment this when you're ready to compile, it will take a lot.
 
-// #include "linalg/vector.hpp"
+// #include "celinalg/vector.hpp"
 
-// using namespace linalg;
+// using namespace celinalg;
 
-// #define ADD_VECTOR_TEMPLATE_SPECIALIZATION(NUM)\
-// template class Vector<char, NUM>;\
-// template class Vector<short, NUM>;\
-// template class Vector<int, NUM>;\
-// template class Vector<long, NUM>;\
-// template class Vector<long long, NUM>;\
-// template class Vector<unsigned char, NUM>;\
-// template class Vector<unsigned short, NUM>;\
-// template class Vector<unsigned int, NUM>;\
-// template class Vector<unsigned long, NUM>;\
-// template class Vector<unsigned long long, NUM>;\
-// template class Vector<float, NUM>;\
-// template class Vector<double, NUM>;\
-// template class Vector<std::complex<char>, NUM>;\
-// template class Vector<std::complex<short>, NUM>;\
-// template class Vector<std::complex<int>, NUM>;\
-// template class Vector<std::complex<long>, NUM>;\
-// template class Vector<std::complex<long long>, NUM>;\
-// template class Vector<std::complex<unsigned char>, NUM>;\
-// template class Vector<std::complex<unsigned short>, NUM>;\
-// template class Vector<std::complex<unsigned int>, NUM>;\
-// template class Vector<std::complex<unsigned long>, NUM>;\
-// template class Vector<std::complex<unsigned long long>, NUM>;\
-// template class Vector<std::complex<float>, NUM>;\
-// template class Vector<std::complex<double>, NUM>;
-
+/* 
+#define ADD_VECTOR_TEMPLATE_SPECIALIZATION(NUM)\
+template class Vector<char, NUM>;\
+template class Vector<short, NUM>;\
+template class Vector<int, NUM>;\
+template class Vector<long, NUM>;\
+template class Vector<long long, NUM>;\
+template class Vector<unsigned char, NUM>;\
+template class Vector<unsigned short, NUM>;\
+template class Vector<unsigned int, NUM>;\
+template class Vector<unsigned long, NUM>;\
+template class Vector<unsigned long long, NUM>;\
+template class Vector<float, NUM>;\
+template class Vector<double, NUM>;\
+template class Vector<std::complex<char>, NUM>;\
+template class Vector<std::complex<short>, NUM>;\
+template class Vector<std::complex<int>, NUM>;\
+template class Vector<std::complex<long>, NUM>;\
+template class Vector<std::complex<long long>, NUM>;\
+template class Vector<std::complex<unsigned char>, NUM>;\
+template class Vector<std::complex<unsigned short>, NUM>;\
+template class Vector<std::complex<unsigned int>, NUM>;\
+template class Vector<std::complex<unsigned long>, NUM>;\
+template class Vector<std::complex<unsigned long long>, NUM>;\
+template class Vector<std::complex<float>, NUM>;\
+template class Vector<std::complex<double>, NUM>;
+ */
 
 // ADD_VECTOR_TEMPLATE_SPECIALIZATION(0)
 // ADD_VECTOR_TEMPLATE_SPECIALIZATION(1)

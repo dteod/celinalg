@@ -1,12 +1,12 @@
 #pragma once
 
-#include "linalg/forward.hpp"
-#include "linalg/utils.hpp"
-#include "linalg/matrix_views.hpp"
-#include "linalg/operation.hpp"
-#include "linalg/matrix.hxx"
+#include "celinalg/forward.hpp"
+#include "celinalg/utils.hpp"
+#include "celinalg/matrix_views.hpp"
+#include "celinalg/operation.hpp"
+#include "celinalg/matrix.hxx"
 
-namespace linalg {
+namespace celinalg {
 
 namespace traits {
 
@@ -26,7 +26,7 @@ struct fixed_state_operation {
 };
 
 template<matrix M1, matrix M2> requires suitable_matrix_cross_size_expression<M1, M2>
-struct fixed_state_operation<detail::MatrixCrossProductExpression<M1, M2>>: std::true_type {};
+struct fixed_state_operation<celinalg::detail::MatrixCrossProductExpression<M1, M2>>: std::true_type {};
 
 template<typename T>
 using fixed_state_operation_v = fixed_state_operation<T>::value;
@@ -34,6 +34,6 @@ using fixed_state_operation_v = fixed_state_operation<T>::value;
 }
 
 template<typename T>
-concept contains_fixed_state_operation = linalg::traits::fixed_state_operation<T>::value;
+concept contains_fixed_state_operation = celinalg::traits::fixed_state_operation<T>::value;
 
 }
