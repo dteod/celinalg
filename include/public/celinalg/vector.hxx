@@ -7,10 +7,10 @@
 #include <numeric>
 #include <type_traits>
 
-#include "linalg/vector.hpp"
-#include "linalg/operation.hpp"
+#include "celinalg/vector.hpp"
+#include "celinalg/operation.hpp"
 
-namespace linalg {
+namespace celinalg {
 
 namespace detail {
 
@@ -972,7 +972,7 @@ template<vector V1, vector V2> requires vectors_same_value_type<V1, V2>
 inline constexpr auto concat(V1& v1, V2& v2) noexcept { return detail::VectorConcatenation(v1, v2); }
 
 
-#define LINALG_DECLARE_FUNCTION(NAME)                                                                                           \
+#define celinalg_DECLARE_FUNCTION(NAME)                                                                                           \
 namespace detail {                                                                                                       \
     inline constexpr auto NAME = [](auto&& x) constexpr noexcept { return math::NAME(std::forward<decltype(x)>(x)); };  \
 }                                                                                                                        \
@@ -980,7 +980,7 @@ template<vector V> inline constexpr auto NAME(const V& v) noexcept {            
     return detail::UnaryVectorFunction<const V, decltype(detail::NAME)>(v);                                              \
 }
 
-#define LINALG_DECLARE_FUNCTION_2(NAME)                                                                                                                                                                                                                    \
+#define celinalg_DECLARE_FUNCTION_2(NAME)                                                                                                                                                                                                                    \
 namespace detail {                                                                                                      \
     inline constexpr auto NAME = [](auto&& x, auto&& y) constexpr noexcept {                                            \
         return math::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));                                 \
@@ -999,7 +999,7 @@ inline constexpr auto NAME(Scalar scalar, const V& v) noexcept {                
     return detail::ScalarVectorFunction<Scalar, const V, decltype(detail::NAME)>{ scalar, v };                          \
 }
 
-#define LINALG_DECLARE_FUNCTION_3(NAME)                                                                                             \
+#define celinalg_DECLARE_FUNCTION_3(NAME)                                                                                             \
 namespace detail {                                                                                                                  \
     inline constexpr auto NAME = [](auto&& x, auto&& y, auto&& z) constexpr noexcept {                                              \
         return math::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y), std::forward<decltype(z)>(z));               \
@@ -1027,7 +1027,7 @@ template<typename Scalar1, typename Scalar2, vector V> requires(!(vector<Scalar1
     return detail::ScalarScalarVectorFunction<Scalar1, Scalar2, const V, decltype(detail::NAME)>(s1, s2, v);                        \
 }
 
-#define LINALG_DECLARE_FUNCTION_2_CONTAINER(NAME)                                                       \
+#define celinalg_DECLARE_FUNCTION_2_CONTAINER(NAME)                                                       \
 namespace detail {                                                                                      \
     inline constexpr auto NAME = [](auto&& x, auto&& y) constexpr noexcept {                            \
         return math::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));                 \
@@ -1044,7 +1044,7 @@ inline constexpr auto NAME(const V& v1, std::vector<T>& v2) noexcept {          
     return detail::VectorContainerFunction<const V, std::vector<T>, decltype(detail::NAME)>(v1, v2);    \
 }
 
-#define LINALG_DECLARE_FUNCTION_3_CONTAINER(NAME)                                                                           \
+#define celinalg_DECLARE_FUNCTION_3_CONTAINER(NAME)                                                                           \
 namespace detail {                                                                                                          \
     inline constexpr auto NAME = [](auto&& x, auto&& y, auto&& z) constexpr noexcept {                                      \
         return math::NAME(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y), std::forward<decltype(z)>(z));       \
@@ -1063,207 +1063,207 @@ inline constexpr auto NAME(const V1& v1, const V2& v2, std::vector<T>& v3) noexc
     return detail::VectorVectorContainerFunction<const V1, const V2, std::vector<T>, decltype(detail::NAME)>(v1, v2, v3);   \
 }
 
-LINALG_DECLARE_FUNCTION(abs); 
-LINALG_DECLARE_FUNCTION(fabs); 
-LINALG_DECLARE_FUNCTION_2(fmod);
-LINALG_DECLARE_FUNCTION_2(remainder);
-LINALG_DECLARE_FUNCTION_2(remainderf);
-LINALG_DECLARE_FUNCTION_2(remainderl);
-LINALG_DECLARE_FUNCTION_3_CONTAINER(remquo);
-LINALG_DECLARE_FUNCTION_3_CONTAINER(remquof);
-LINALG_DECLARE_FUNCTION_3_CONTAINER(remquol);
-LINALG_DECLARE_FUNCTION_3(fma);
-LINALG_DECLARE_FUNCTION_3(fmaf);
-LINALG_DECLARE_FUNCTION_3(fmal);
-LINALG_DECLARE_FUNCTION_2(fmax);
-LINALG_DECLARE_FUNCTION_2(fmaxf);
-LINALG_DECLARE_FUNCTION_2(fmaxl);
-LINALG_DECLARE_FUNCTION_2(fmin);
-LINALG_DECLARE_FUNCTION_2(fminf);
-LINALG_DECLARE_FUNCTION_2(fminl);
-LINALG_DECLARE_FUNCTION_2(fdim);
-LINALG_DECLARE_FUNCTION_2(fdimf);
-LINALG_DECLARE_FUNCTION_2(fdiml);
-LINALG_DECLARE_FUNCTION_3(lerp);
-LINALG_DECLARE_FUNCTION(exp);
-LINALG_DECLARE_FUNCTION(exp2);
-LINALG_DECLARE_FUNCTION(exp2f);
-LINALG_DECLARE_FUNCTION(exp2l);
-LINALG_DECLARE_FUNCTION(expm1);
-LINALG_DECLARE_FUNCTION(expm1f);
-LINALG_DECLARE_FUNCTION(expm1l);
-LINALG_DECLARE_FUNCTION(log);
-LINALG_DECLARE_FUNCTION(log10);
-LINALG_DECLARE_FUNCTION(log1p);
-LINALG_DECLARE_FUNCTION(log1pf);
-LINALG_DECLARE_FUNCTION(log1pl);
-LINALG_DECLARE_FUNCTION_2(pow);
-LINALG_DECLARE_FUNCTION(sqrt);
-LINALG_DECLARE_FUNCTION(cbrt);
-LINALG_DECLARE_FUNCTION(cbrtf);
-LINALG_DECLARE_FUNCTION(cbrtl);
-LINALG_DECLARE_FUNCTION_2(hypot);
-LINALG_DECLARE_FUNCTION_2(hypotf);
-LINALG_DECLARE_FUNCTION_2(hypotl);
-LINALG_DECLARE_FUNCTION(sin);
-LINALG_DECLARE_FUNCTION(cos);
-LINALG_DECLARE_FUNCTION(tan);
-LINALG_DECLARE_FUNCTION(asin);
-LINALG_DECLARE_FUNCTION(acos);
-LINALG_DECLARE_FUNCTION(atan);
-LINALG_DECLARE_FUNCTION_2(atan2);
-LINALG_DECLARE_FUNCTION(sinh);
-LINALG_DECLARE_FUNCTION(cosh);
-LINALG_DECLARE_FUNCTION(tanh);
-LINALG_DECLARE_FUNCTION(asinh);
-LINALG_DECLARE_FUNCTION(asinhf);
-LINALG_DECLARE_FUNCTION(asinhl);
-LINALG_DECLARE_FUNCTION(acosh);
-LINALG_DECLARE_FUNCTION(acoshf);
-LINALG_DECLARE_FUNCTION(acoshl);
-LINALG_DECLARE_FUNCTION(atanh);
-LINALG_DECLARE_FUNCTION(atanhf);
-LINALG_DECLARE_FUNCTION(atanhl);
-LINALG_DECLARE_FUNCTION(erf);
-LINALG_DECLARE_FUNCTION(erff);
-LINALG_DECLARE_FUNCTION(erfl);
-LINALG_DECLARE_FUNCTION(erfc);
-LINALG_DECLARE_FUNCTION(erfcf);
-LINALG_DECLARE_FUNCTION(erfcl);
-LINALG_DECLARE_FUNCTION(tgamma);
-LINALG_DECLARE_FUNCTION(tgammaf);
-LINALG_DECLARE_FUNCTION(tgammal);
-LINALG_DECLARE_FUNCTION(lgamma);
-LINALG_DECLARE_FUNCTION(lgammaf);
-LINALG_DECLARE_FUNCTION(lgammal);
-LINALG_DECLARE_FUNCTION(ceil);
-LINALG_DECLARE_FUNCTION(floor);
-LINALG_DECLARE_FUNCTION(trunc);
-LINALG_DECLARE_FUNCTION(truncf);
-LINALG_DECLARE_FUNCTION(truncl);
-LINALG_DECLARE_FUNCTION(round);
-LINALG_DECLARE_FUNCTION(roundf);
-LINALG_DECLARE_FUNCTION(roundl);
-LINALG_DECLARE_FUNCTION(lround);
-LINALG_DECLARE_FUNCTION(lroundf);
-LINALG_DECLARE_FUNCTION(lroundl);
-LINALG_DECLARE_FUNCTION(llround);
-LINALG_DECLARE_FUNCTION(llroundf);
-LINALG_DECLARE_FUNCTION(llroundl);
-LINALG_DECLARE_FUNCTION(nearbyint);
-LINALG_DECLARE_FUNCTION(nearbyintf);
-LINALG_DECLARE_FUNCTION(nearbyintl);
-LINALG_DECLARE_FUNCTION(rint);
-LINALG_DECLARE_FUNCTION(rintf);
-LINALG_DECLARE_FUNCTION(rintl);
-LINALG_DECLARE_FUNCTION(lrint);
-LINALG_DECLARE_FUNCTION(lrintf);
-LINALG_DECLARE_FUNCTION(lrintl);
-LINALG_DECLARE_FUNCTION(llrint);
-LINALG_DECLARE_FUNCTION(llrintf);
-LINALG_DECLARE_FUNCTION(llrintl);
-LINALG_DECLARE_FUNCTION_2_CONTAINER(frexp);
-LINALG_DECLARE_FUNCTION_2_CONTAINER(ldexp);
-LINALG_DECLARE_FUNCTION_2_CONTAINER(modf);
-LINALG_DECLARE_FUNCTION_2(scalbn);
-LINALG_DECLARE_FUNCTION_2(scalbnf);
-LINALG_DECLARE_FUNCTION_2(scalbnl);
-LINALG_DECLARE_FUNCTION_2(scalbln);
-LINALG_DECLARE_FUNCTION_2(scalblnf);
-LINALG_DECLARE_FUNCTION_2(scalblnl);
-LINALG_DECLARE_FUNCTION(ilogb);
-LINALG_DECLARE_FUNCTION(ilogbf);
-LINALG_DECLARE_FUNCTION(ilogbl);
-LINALG_DECLARE_FUNCTION(logb);
-LINALG_DECLARE_FUNCTION(logbf);
-LINALG_DECLARE_FUNCTION(logbl);
-LINALG_DECLARE_FUNCTION_2(nextafter);
-LINALG_DECLARE_FUNCTION_2(nextafterf);
-LINALG_DECLARE_FUNCTION_2(nextafterl);
-LINALG_DECLARE_FUNCTION_2(nexttoward);
-LINALG_DECLARE_FUNCTION_2(nexttowardf);
-LINALG_DECLARE_FUNCTION_2(nexttowardl);
-LINALG_DECLARE_FUNCTION_2(copysign);
-LINALG_DECLARE_FUNCTION_2(copysignf);
-LINALG_DECLARE_FUNCTION_2(copysignl);
-LINALG_DECLARE_FUNCTION(fpclassify);
-LINALG_DECLARE_FUNCTION(isfinite);
-LINALG_DECLARE_FUNCTION(isinf);
-LINALG_DECLARE_FUNCTION(isnan);
-LINALG_DECLARE_FUNCTION(isnormal);
-LINALG_DECLARE_FUNCTION(signbit);
-LINALG_DECLARE_FUNCTION_2(isgreater);
-LINALG_DECLARE_FUNCTION_2(isgreaterequal);
-LINALG_DECLARE_FUNCTION_2(isless);
-LINALG_DECLARE_FUNCTION_2(islessequal);
-LINALG_DECLARE_FUNCTION_2(islessgreater);
-LINALG_DECLARE_FUNCTION_2(isunordered);
-LINALG_DECLARE_FUNCTION_3(assoc_laguerre);
-LINALG_DECLARE_FUNCTION_3(assoc_laguerref);
-LINALG_DECLARE_FUNCTION_3(assoc_laguerrel);
-LINALG_DECLARE_FUNCTION_3(assoc_legendre);
-LINALG_DECLARE_FUNCTION_3(assoc_legendref);
-LINALG_DECLARE_FUNCTION_3(assoc_legendrel);
-LINALG_DECLARE_FUNCTION_2(beta);
-LINALG_DECLARE_FUNCTION_2(betaf);
-LINALG_DECLARE_FUNCTION_2(betal);
-LINALG_DECLARE_FUNCTION(comp_ellint_1);
-LINALG_DECLARE_FUNCTION(comp_ellint_1f);
-LINALG_DECLARE_FUNCTION(comp_ellint_1l);
-LINALG_DECLARE_FUNCTION(comp_ellint_2);
-LINALG_DECLARE_FUNCTION(comp_ellint_2f);
-LINALG_DECLARE_FUNCTION(comp_ellint_2l);
-LINALG_DECLARE_FUNCTION_2(comp_ellint_3);
-LINALG_DECLARE_FUNCTION_2(comp_ellint_3f);
-LINALG_DECLARE_FUNCTION_2(comp_ellint_3l);
-LINALG_DECLARE_FUNCTION_2(cyl_bessel_i);
-LINALG_DECLARE_FUNCTION_2(cyl_bessel_if);
-LINALG_DECLARE_FUNCTION_2(cyl_bessel_il);
-LINALG_DECLARE_FUNCTION_2(cyl_bessel_j);
-LINALG_DECLARE_FUNCTION_2(cyl_bessel_jf);
-LINALG_DECLARE_FUNCTION_2(cyl_bessel_jl);
-LINALG_DECLARE_FUNCTION_2(cyl_bessel_k);
-LINALG_DECLARE_FUNCTION_2(cyl_bessel_kf);
-LINALG_DECLARE_FUNCTION_2(cyl_bessel_kl);
-LINALG_DECLARE_FUNCTION_2(cyl_neumann);
-LINALG_DECLARE_FUNCTION_2(cyl_neumannf);
-LINALG_DECLARE_FUNCTION_2(cyl_neumannl);
-LINALG_DECLARE_FUNCTION_2(ellint_1);
-LINALG_DECLARE_FUNCTION_2(ellint_1f);
-LINALG_DECLARE_FUNCTION_2(ellint_1l);
-LINALG_DECLARE_FUNCTION_2(ellint_2);
-LINALG_DECLARE_FUNCTION_2(ellint_2f);
-LINALG_DECLARE_FUNCTION_2(ellint_2l);
-LINALG_DECLARE_FUNCTION_3(ellint_3);
-LINALG_DECLARE_FUNCTION_3(ellint_3f);
-LINALG_DECLARE_FUNCTION_3(ellint_3l);
-LINALG_DECLARE_FUNCTION(expint);
-LINALG_DECLARE_FUNCTION(expintf);
-LINALG_DECLARE_FUNCTION(expintl);
-LINALG_DECLARE_FUNCTION_2(hermite);
-LINALG_DECLARE_FUNCTION_2(hermitef);
-LINALG_DECLARE_FUNCTION_2(hermitel);
-LINALG_DECLARE_FUNCTION_2(legendre);
-LINALG_DECLARE_FUNCTION_2(legendref);
-LINALG_DECLARE_FUNCTION_2(legendrel);
-LINALG_DECLARE_FUNCTION_2(laguerre);
-LINALG_DECLARE_FUNCTION_2(laguerref);
-LINALG_DECLARE_FUNCTION_2(laguerrel);
-LINALG_DECLARE_FUNCTION(riemann_zeta);
-LINALG_DECLARE_FUNCTION(riemann_zetaf);
-LINALG_DECLARE_FUNCTION(riemann_zetal);
-LINALG_DECLARE_FUNCTION_2(sph_bessel);
-LINALG_DECLARE_FUNCTION_2(sph_besself);
-LINALG_DECLARE_FUNCTION_2(sph_bessell);
-LINALG_DECLARE_FUNCTION_3(sph_legendre);
-LINALG_DECLARE_FUNCTION_3(sph_legendref);
-LINALG_DECLARE_FUNCTION_3(sph_legendrel);
-LINALG_DECLARE_FUNCTION_2(sph_neumann);
-LINALG_DECLARE_FUNCTION_2(sph_neumannf);
-LINALG_DECLARE_FUNCTION_2(sph_neumannl);
+celinalg_DECLARE_FUNCTION(abs); 
+celinalg_DECLARE_FUNCTION(fabs); 
+celinalg_DECLARE_FUNCTION_2(fmod);
+celinalg_DECLARE_FUNCTION_2(remainder);
+celinalg_DECLARE_FUNCTION_2(remainderf);
+celinalg_DECLARE_FUNCTION_2(remainderl);
+celinalg_DECLARE_FUNCTION_3_CONTAINER(remquo);
+celinalg_DECLARE_FUNCTION_3_CONTAINER(remquof);
+celinalg_DECLARE_FUNCTION_3_CONTAINER(remquol);
+celinalg_DECLARE_FUNCTION_3(fma);
+celinalg_DECLARE_FUNCTION_3(fmaf);
+celinalg_DECLARE_FUNCTION_3(fmal);
+celinalg_DECLARE_FUNCTION_2(fmax);
+celinalg_DECLARE_FUNCTION_2(fmaxf);
+celinalg_DECLARE_FUNCTION_2(fmaxl);
+celinalg_DECLARE_FUNCTION_2(fmin);
+celinalg_DECLARE_FUNCTION_2(fminf);
+celinalg_DECLARE_FUNCTION_2(fminl);
+celinalg_DECLARE_FUNCTION_2(fdim);
+celinalg_DECLARE_FUNCTION_2(fdimf);
+celinalg_DECLARE_FUNCTION_2(fdiml);
+celinalg_DECLARE_FUNCTION_3(lerp);
+celinalg_DECLARE_FUNCTION(exp);
+celinalg_DECLARE_FUNCTION(exp2);
+celinalg_DECLARE_FUNCTION(exp2f);
+celinalg_DECLARE_FUNCTION(exp2l);
+celinalg_DECLARE_FUNCTION(expm1);
+celinalg_DECLARE_FUNCTION(expm1f);
+celinalg_DECLARE_FUNCTION(expm1l);
+celinalg_DECLARE_FUNCTION(log);
+celinalg_DECLARE_FUNCTION(log10);
+celinalg_DECLARE_FUNCTION(log1p);
+celinalg_DECLARE_FUNCTION(log1pf);
+celinalg_DECLARE_FUNCTION(log1pl);
+celinalg_DECLARE_FUNCTION_2(pow);
+celinalg_DECLARE_FUNCTION(sqrt);
+celinalg_DECLARE_FUNCTION(cbrt);
+celinalg_DECLARE_FUNCTION(cbrtf);
+celinalg_DECLARE_FUNCTION(cbrtl);
+celinalg_DECLARE_FUNCTION_2(hypot);
+celinalg_DECLARE_FUNCTION_2(hypotf);
+celinalg_DECLARE_FUNCTION_2(hypotl);
+celinalg_DECLARE_FUNCTION(sin);
+celinalg_DECLARE_FUNCTION(cos);
+celinalg_DECLARE_FUNCTION(tan);
+celinalg_DECLARE_FUNCTION(asin);
+celinalg_DECLARE_FUNCTION(acos);
+celinalg_DECLARE_FUNCTION(atan);
+celinalg_DECLARE_FUNCTION_2(atan2);
+celinalg_DECLARE_FUNCTION(sinh);
+celinalg_DECLARE_FUNCTION(cosh);
+celinalg_DECLARE_FUNCTION(tanh);
+celinalg_DECLARE_FUNCTION(asinh);
+celinalg_DECLARE_FUNCTION(asinhf);
+celinalg_DECLARE_FUNCTION(asinhl);
+celinalg_DECLARE_FUNCTION(acosh);
+celinalg_DECLARE_FUNCTION(acoshf);
+celinalg_DECLARE_FUNCTION(acoshl);
+celinalg_DECLARE_FUNCTION(atanh);
+celinalg_DECLARE_FUNCTION(atanhf);
+celinalg_DECLARE_FUNCTION(atanhl);
+celinalg_DECLARE_FUNCTION(erf);
+celinalg_DECLARE_FUNCTION(erff);
+celinalg_DECLARE_FUNCTION(erfl);
+celinalg_DECLARE_FUNCTION(erfc);
+celinalg_DECLARE_FUNCTION(erfcf);
+celinalg_DECLARE_FUNCTION(erfcl);
+celinalg_DECLARE_FUNCTION(tgamma);
+celinalg_DECLARE_FUNCTION(tgammaf);
+celinalg_DECLARE_FUNCTION(tgammal);
+celinalg_DECLARE_FUNCTION(lgamma);
+celinalg_DECLARE_FUNCTION(lgammaf);
+celinalg_DECLARE_FUNCTION(lgammal);
+celinalg_DECLARE_FUNCTION(ceil);
+celinalg_DECLARE_FUNCTION(floor);
+celinalg_DECLARE_FUNCTION(trunc);
+celinalg_DECLARE_FUNCTION(truncf);
+celinalg_DECLARE_FUNCTION(truncl);
+celinalg_DECLARE_FUNCTION(round);
+celinalg_DECLARE_FUNCTION(roundf);
+celinalg_DECLARE_FUNCTION(roundl);
+celinalg_DECLARE_FUNCTION(lround);
+celinalg_DECLARE_FUNCTION(lroundf);
+celinalg_DECLARE_FUNCTION(lroundl);
+celinalg_DECLARE_FUNCTION(llround);
+celinalg_DECLARE_FUNCTION(llroundf);
+celinalg_DECLARE_FUNCTION(llroundl);
+celinalg_DECLARE_FUNCTION(nearbyint);
+celinalg_DECLARE_FUNCTION(nearbyintf);
+celinalg_DECLARE_FUNCTION(nearbyintl);
+celinalg_DECLARE_FUNCTION(rint);
+celinalg_DECLARE_FUNCTION(rintf);
+celinalg_DECLARE_FUNCTION(rintl);
+celinalg_DECLARE_FUNCTION(lrint);
+celinalg_DECLARE_FUNCTION(lrintf);
+celinalg_DECLARE_FUNCTION(lrintl);
+celinalg_DECLARE_FUNCTION(llrint);
+celinalg_DECLARE_FUNCTION(llrintf);
+celinalg_DECLARE_FUNCTION(llrintl);
+celinalg_DECLARE_FUNCTION_2_CONTAINER(frexp);
+celinalg_DECLARE_FUNCTION_2_CONTAINER(ldexp);
+celinalg_DECLARE_FUNCTION_2_CONTAINER(modf);
+celinalg_DECLARE_FUNCTION_2(scalbn);
+celinalg_DECLARE_FUNCTION_2(scalbnf);
+celinalg_DECLARE_FUNCTION_2(scalbnl);
+celinalg_DECLARE_FUNCTION_2(scalbln);
+celinalg_DECLARE_FUNCTION_2(scalblnf);
+celinalg_DECLARE_FUNCTION_2(scalblnl);
+celinalg_DECLARE_FUNCTION(ilogb);
+celinalg_DECLARE_FUNCTION(ilogbf);
+celinalg_DECLARE_FUNCTION(ilogbl);
+celinalg_DECLARE_FUNCTION(logb);
+celinalg_DECLARE_FUNCTION(logbf);
+celinalg_DECLARE_FUNCTION(logbl);
+celinalg_DECLARE_FUNCTION_2(nextafter);
+celinalg_DECLARE_FUNCTION_2(nextafterf);
+celinalg_DECLARE_FUNCTION_2(nextafterl);
+celinalg_DECLARE_FUNCTION_2(nexttoward);
+celinalg_DECLARE_FUNCTION_2(nexttowardf);
+celinalg_DECLARE_FUNCTION_2(nexttowardl);
+celinalg_DECLARE_FUNCTION_2(copysign);
+celinalg_DECLARE_FUNCTION_2(copysignf);
+celinalg_DECLARE_FUNCTION_2(copysignl);
+celinalg_DECLARE_FUNCTION(fpclassify);
+celinalg_DECLARE_FUNCTION(isfinite);
+celinalg_DECLARE_FUNCTION(isinf);
+celinalg_DECLARE_FUNCTION(isnan);
+celinalg_DECLARE_FUNCTION(isnormal);
+celinalg_DECLARE_FUNCTION(signbit);
+celinalg_DECLARE_FUNCTION_2(isgreater);
+celinalg_DECLARE_FUNCTION_2(isgreaterequal);
+celinalg_DECLARE_FUNCTION_2(isless);
+celinalg_DECLARE_FUNCTION_2(islessequal);
+celinalg_DECLARE_FUNCTION_2(islessgreater);
+celinalg_DECLARE_FUNCTION_2(isunordered);
+celinalg_DECLARE_FUNCTION_3(assoc_laguerre);
+celinalg_DECLARE_FUNCTION_3(assoc_laguerref);
+celinalg_DECLARE_FUNCTION_3(assoc_laguerrel);
+celinalg_DECLARE_FUNCTION_3(assoc_legendre);
+celinalg_DECLARE_FUNCTION_3(assoc_legendref);
+celinalg_DECLARE_FUNCTION_3(assoc_legendrel);
+celinalg_DECLARE_FUNCTION_2(beta);
+celinalg_DECLARE_FUNCTION_2(betaf);
+celinalg_DECLARE_FUNCTION_2(betal);
+celinalg_DECLARE_FUNCTION(comp_ellint_1);
+celinalg_DECLARE_FUNCTION(comp_ellint_1f);
+celinalg_DECLARE_FUNCTION(comp_ellint_1l);
+celinalg_DECLARE_FUNCTION(comp_ellint_2);
+celinalg_DECLARE_FUNCTION(comp_ellint_2f);
+celinalg_DECLARE_FUNCTION(comp_ellint_2l);
+celinalg_DECLARE_FUNCTION_2(comp_ellint_3);
+celinalg_DECLARE_FUNCTION_2(comp_ellint_3f);
+celinalg_DECLARE_FUNCTION_2(comp_ellint_3l);
+celinalg_DECLARE_FUNCTION_2(cyl_bessel_i);
+celinalg_DECLARE_FUNCTION_2(cyl_bessel_if);
+celinalg_DECLARE_FUNCTION_2(cyl_bessel_il);
+celinalg_DECLARE_FUNCTION_2(cyl_bessel_j);
+celinalg_DECLARE_FUNCTION_2(cyl_bessel_jf);
+celinalg_DECLARE_FUNCTION_2(cyl_bessel_jl);
+celinalg_DECLARE_FUNCTION_2(cyl_bessel_k);
+celinalg_DECLARE_FUNCTION_2(cyl_bessel_kf);
+celinalg_DECLARE_FUNCTION_2(cyl_bessel_kl);
+celinalg_DECLARE_FUNCTION_2(cyl_neumann);
+celinalg_DECLARE_FUNCTION_2(cyl_neumannf);
+celinalg_DECLARE_FUNCTION_2(cyl_neumannl);
+celinalg_DECLARE_FUNCTION_2(ellint_1);
+celinalg_DECLARE_FUNCTION_2(ellint_1f);
+celinalg_DECLARE_FUNCTION_2(ellint_1l);
+celinalg_DECLARE_FUNCTION_2(ellint_2);
+celinalg_DECLARE_FUNCTION_2(ellint_2f);
+celinalg_DECLARE_FUNCTION_2(ellint_2l);
+celinalg_DECLARE_FUNCTION_3(ellint_3);
+celinalg_DECLARE_FUNCTION_3(ellint_3f);
+celinalg_DECLARE_FUNCTION_3(ellint_3l);
+celinalg_DECLARE_FUNCTION(expint);
+celinalg_DECLARE_FUNCTION(expintf);
+celinalg_DECLARE_FUNCTION(expintl);
+celinalg_DECLARE_FUNCTION_2(hermite);
+celinalg_DECLARE_FUNCTION_2(hermitef);
+celinalg_DECLARE_FUNCTION_2(hermitel);
+celinalg_DECLARE_FUNCTION_2(legendre);
+celinalg_DECLARE_FUNCTION_2(legendref);
+celinalg_DECLARE_FUNCTION_2(legendrel);
+celinalg_DECLARE_FUNCTION_2(laguerre);
+celinalg_DECLARE_FUNCTION_2(laguerref);
+celinalg_DECLARE_FUNCTION_2(laguerrel);
+celinalg_DECLARE_FUNCTION(riemann_zeta);
+celinalg_DECLARE_FUNCTION(riemann_zetaf);
+celinalg_DECLARE_FUNCTION(riemann_zetal);
+celinalg_DECLARE_FUNCTION_2(sph_bessel);
+celinalg_DECLARE_FUNCTION_2(sph_besself);
+celinalg_DECLARE_FUNCTION_2(sph_bessell);
+celinalg_DECLARE_FUNCTION_3(sph_legendre);
+celinalg_DECLARE_FUNCTION_3(sph_legendref);
+celinalg_DECLARE_FUNCTION_3(sph_legendrel);
+celinalg_DECLARE_FUNCTION_2(sph_neumann);
+celinalg_DECLARE_FUNCTION_2(sph_neumannf);
+celinalg_DECLARE_FUNCTION_2(sph_neumannl);
 
-#undef LINALG_DECLARE_FUNCTION
-#undef LINALG_DECLARE_FUNCTION_2
-#undef LINALG_DECLARE_FUNCTION_3
-#undef LINALG_DECLARE_FUNCTION_3_CONTAINER
+#undef celinalg_DECLARE_FUNCTION
+#undef celinalg_DECLARE_FUNCTION_2
+#undef celinalg_DECLARE_FUNCTION_3
+#undef celinalg_DECLARE_FUNCTION_3_CONTAINER
 }

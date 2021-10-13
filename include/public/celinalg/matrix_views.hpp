@@ -1,10 +1,10 @@
 #pragma once
 
-#include "linalg/forward.hpp"
-#include "linalg/utils.hpp"
-#include "linalg/vector.hpp"
+#include "celinalg/forward.hpp"
+#include "celinalg/utils.hpp"
+#include "celinalg/vector.hpp"
 
-namespace linalg {
+namespace celinalg {
 
 enum class MatrixDimension {
     BY_ROWS,
@@ -21,7 +21,7 @@ namespace detail {
 template<matrix M, MatrixDimension Dim>
 class MatrixDimensionView {
     std::conditional_t<M::is_temporary, M, M&> m;
-    template<typename T1, typename T2> friend constexpr bool linalg::utils::expression_reference_check_state_invalidation(const T1* self, const T2* p);
+    template<typename T1, typename T2> friend constexpr bool celinalg::utils::expression_reference_check_state_invalidation(const T1* self, const T2* p);
 
     size_t m_index;
     inline constexpr size_t forward_size() const noexcept {
@@ -282,7 +282,7 @@ public:
 template<matrix M, MatrixDimension Dim>
 class MatrixDimensionViewFactory {
     std::conditional_t<M::is_temporary, M, M&> m;
-    template<typename T1, typename T2> friend constexpr bool linalg::utils::expression_reference_check_state_invalidation(const T1* self, const T2* p);
+    template<typename T1, typename T2> friend constexpr bool celinalg::utils::expression_reference_check_state_invalidation(const T1* self, const T2* p);
 
     inline constexpr static auto factory(M& m, size_t index) {
         return MatrixDimensionView<M, Dim>(m, index);
@@ -376,7 +376,7 @@ inline constexpr const typename MatrixDimensionViewFactory<M, Dim>::iterator ope
 template<matrix M, MatrixDimension Dim>
 class ElementsView {
     std::conditional_t<M::is_temporary, M, M&> m;
-    template<typename T1, typename T2> friend constexpr bool linalg::utils::expression_reference_check_state_invalidation(const T1* self, const T2* p);
+    template<typename T1, typename T2> friend constexpr bool celinalg::utils::expression_reference_check_state_invalidation(const T1* self, const T2* p);
 
     struct index_picker {
         inline constexpr static size_t pick(const auto& element, size_t index) {

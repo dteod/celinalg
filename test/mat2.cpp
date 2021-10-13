@@ -1,9 +1,9 @@
 #include <iostream> 
-#include <linalg/matrix.hpp>
+#include <celinalg/matrix.hpp>
 
 int main() {
     using cd = std::complex<double>;
-    linalg::Matrix<cd, 3, 3> m {{
+    celinalg::Matrix<cd, 3, 3> m {{
         {cd(1, 1), cd(2, 3), cd(0, 5)},
         {cd(0, 10), cd(-3.1, 3), cd(-1.2, 2)},
         {cd(10, 0), cd(-1, -43.6), cd(0, 5)}

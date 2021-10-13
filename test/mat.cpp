@@ -1,12 +1,12 @@
 #include <iostream>
 #include <ranges>
 
-#include "linalg/matrix.hpp"
+#include "celinalg/matrix.hpp"
 
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
-using namespace linalg;
+using namespace celinalg;
 
 #define TYPE_PARAMETER_LIST \
     uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double,        \
@@ -14,7 +14,7 @@ using namespace linalg;
     std::complex<int8_t>, std::complex<int16_t>, std::complex<int32_t>, std::complex<int64_t>,      \
     std::complex<float>, std::complex<double>
 
-TEMPLATE_TEST_CASE("matrix instantiation", "[linalg][matrix]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("matrix instantiation", "[celinalg][matrix]", TYPE_PARAMETER_LIST) {
     Matrix<TestType, 3, 3> m {{
         { TestType(1), TestType(2), TestType(3)},
         { TestType(5), TestType(0), TestType(2)},
@@ -32,7 +32,7 @@ TEMPLATE_TEST_CASE("matrix instantiation", "[linalg][matrix]", TYPE_PARAMETER_LI
     REQUIRE( m[2][2] == TestType(1) );
 }
 
-TEMPLATE_TEST_CASE("CTAD-assisted matrix instantiation", "[linalg][matrix]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("CTAD-assisted matrix instantiation", "[celinalg][matrix]", TYPE_PARAMETER_LIST) {
     Matrix m {{
         { TestType(1), TestType(2), TestType(3)},
         { TestType(5), TestType(0), TestType(2)},
@@ -52,7 +52,7 @@ TEMPLATE_TEST_CASE("CTAD-assisted matrix instantiation", "[linalg][matrix]", TYP
     REQUIRE( m[2][2] == TestType(1) ); 
 }
 
-TEMPLATE_TEST_CASE("matrix sum", "[linalg][matrix]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("matrix sum", "[celinalg][matrix]", TYPE_PARAMETER_LIST) {
     Matrix m {{
         {TestType(1), TestType(2), TestType(3)},
         {TestType(1), TestType(2), TestType(3)},
@@ -65,7 +65,7 @@ TEMPLATE_TEST_CASE("matrix sum", "[linalg][matrix]", TYPE_PARAMETER_LIST) {
             REQUIRE(sum[i][j] == m[i][j] + m[i][j]);
 }
 
-TEMPLATE_TEST_CASE("matrix cprod", "[linalg][matrix]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("matrix cprod", "[celinalg][matrix]", TYPE_PARAMETER_LIST) {
     Matrix m{{
         {TestType(1), TestType(2), TestType(3)},
         {TestType(1), TestType(2), TestType(3)},
@@ -99,7 +99,7 @@ TEMPLATE_TEST_CASE("matrix cprod", "[linalg][matrix]", TYPE_PARAMETER_LIST) {
 }
 
 
-TEMPLATE_TEST_CASE("matrix random access", "[linalg][matrix]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("matrix random access", "[celinalg][matrix]", TYPE_PARAMETER_LIST) {
     Matrix m { { 
         {TestType(1), TestType(2), TestType(3)}, 
         {TestType(4), TestType(5), TestType(6)}, 
@@ -129,7 +129,7 @@ TEMPLATE_TEST_CASE("matrix random access", "[linalg][matrix]", TYPE_PARAMETER_LI
     REQUIRE( m[2][2] == TestType(9) );
 }
 
-TEMPLATE_TEST_CASE("matrix transposition", "[linalg][matrix]", TYPE_PARAMETER_LIST) {
+TEMPLATE_TEST_CASE("matrix transposition", "[celinalg][matrix]", TYPE_PARAMETER_LIST) {
     Matrix m { { 
         {TestType(1), TestType(2), TestType(3)}, 
         {TestType(4), TestType(5), TestType(6)}, 

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace linalg::utils {
+namespace celinalg::utils {
 
 template<typename T1, typename T2>
 constexpr bool expression_reference_check_state_invalidation(const T1* self, const T2* p) {

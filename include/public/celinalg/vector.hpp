@@ -1,15 +1,15 @@
 #pragma once
 
-#include "linalg/forward.hpp"
-#include "traits/common_type.hpp"
+#include "celinalg/forward.hpp"
+#include "celinalg/common_type.hpp"
 
 #include <array>
 #include <vector>
 #include <span>
 
-#include "linalg/vector_view.hpp"
+#include "celinalg/vector_view.hpp"
 
-namespace linalg {
+namespace celinalg {
 
 template<req::number T, size_t Size>
 class Vector {
@@ -473,4 +473,4 @@ using DoubleVec4 = DoubleVec<4>;
 }
 
 
-#include "linalg/vector.hxx"
+#include "celinalg/vector.hxx"

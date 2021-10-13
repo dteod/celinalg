@@ -1,11 +1,13 @@
 #pragma once
 
-#include <requirements.hpp>
 #include <concepts>
 
-#include "math.hpp"
-// TODO remove when it will be implemented
+#include "celinalg/number.hpp"
+#include "celinalg/math.hpp"
+
+
 namespace std {
+// TODO remove when it will be implemented
 
 template<typename B>
 concept __boolean_testable_impl = std::convertible_to<B, bool>;
@@ -19,7 +21,7 @@ concept boolean_testable =                       // exposition only
 
 }
 
-namespace linalg {
+namespace celinalg {
 
 template<req::number, size_t>
 class Vector;

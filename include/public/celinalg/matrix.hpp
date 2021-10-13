@@ -5,14 +5,14 @@
 #include <tuple>
 #include <span>
 
-#include "linalg/forward.hpp"
-#include "linalg/matrix_views.hpp"
-#include "linalg/vector.hpp"
-#include "linalg/matrix.hxx"
-#include "linalg/traits.hpp"
-#include "linalg/utils.hpp"
+#include "celinalg/forward.hpp"
+#include "celinalg/matrix_views.hpp"
+#include "celinalg/vector.hpp"
+#include "celinalg/matrix.hxx"
+#include "celinalg/traits.hpp"
+#include "celinalg/utils.hpp"
 
-namespace linalg {
+namespace celinalg {
 
 template<req::number T, size_t Rows, size_t Cols>
 class Matrix {
@@ -432,7 +432,7 @@ public:
             // (e.g. for small sized matrices a copy may be faster than traversing a deep tree, 
             // viceversa if the tree height is small traversing it may be faster than creating a (suppose) 128*128 doubles temporary and copying it)
             // TODO add an if constexpr to skip the reference check for deep trees
-            if(linalg::utils::expression_reference_check_state_invalidation(this, &m)) {
+            if(celinalg::utils::expression_reference_check_state_invalidation(this, &m)) {
                 // std::cout << "state invalidation detected, using temporary" << std::endl;
                 Matrix tmp {m};
                 std::copy(tmp.elements_view().begin(), tmp.elements_view().end(), elements_view().begin());
@@ -572,4 +572,4 @@ Matrix(const M& m) -> Matrix<typename M::value_type, M::static_rows, M::static_c
 
 }
 
-#include "linalg/matrix.hxx"
+#include "celinalg/matrix.hxx"

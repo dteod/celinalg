@@ -1,9 +1,9 @@
 #define CATCH_CONFIG_MAIN
 
 #include <catch2/catch.hpp>
-#include <linalg/matrix.hpp>
+#include <celinalg/matrix.hpp>
 
-using namespace linalg;
+using namespace celinalg;
 
 
 SCENARIO("matrix iterators") {

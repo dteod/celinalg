@@ -1,13 +1,15 @@
 #pragma once
 
-#include <traits.hpp>
+#include "celinalg/number.hpp"
+#include "celinalg/numeric_traits.hpp"
+#include "celinalg/number_type.hpp"
+#include "celinalg/common_type.hpp"
+#include "celinalg/forward.hpp"
+#include "celinalg/utils.hpp"
+#include "celinalg/matrix_views.hpp"
+#include "celinalg/operation.hpp"
 
-#include "linalg/forward.hpp"
-#include "linalg/utils.hpp"
-#include "linalg/matrix_views.hpp"
-#include "linalg/operation.hpp"
-
-namespace linalg {
+namespace celinalg {
 
 namespace detail {
 
@@ -48,7 +50,7 @@ public:
 private:
     std::conditional_t<M1::is_temporary, M1, const M1&> m1;
     std::conditional_t<M2::is_temporary, M2, const M2&> m2;
-    template<typename T1, typename T2> friend constexpr bool linalg::utils::expression_reference_check_state_invalidation(const T1* self, const T2* p);
+    template<typename T1, typename T2> friend constexpr bool celinalg::utils::expression_reference_check_state_invalidation(const T1* self, const T2* p);
 
     template<typename Element, typename index_picker> requires(container<Element> && expression_participant<Element>) friend class detail::linear_element_iterator;
     friend class detail::MatrixView<MatExpression>;
@@ -153,7 +155,7 @@ private:
     std::conditional_t<M1::is_temporary, M1, const M1&> m1;
     std::conditional_t<M2::is_temporary, M2, const M2&> m2;
     size_t m1_row, m2_col;
-    template<typename T1, typename T2> friend constexpr bool linalg::utils::expression_reference_check_state_invalidation(const T1* self, const T2* p);
+    template<typename T1, typename T2> friend constexpr bool celinalg::utils::expression_reference_check_state_invalidation(const T1* self, const T2* p);
 
 public:
     constexpr MatrixSingleRowColProductExpression(const M1& m1, const M2& m2, size_t m1_row, size_t m2_col): m1{m1}, m2{m2}, m1_row{m1_row}, m2_col{m2_col} {}
@@ -185,7 +187,7 @@ public:
 private:
     std::conditional_t<M1::is_temporary, M1, const M1&> m1;
     std::conditional_t<M2::is_temporary, M2, const M2&> m2;
-    template<typename T1, typename T2> friend constexpr bool linalg::utils::expression_reference_check_state_invalidation(const T1* self, const T2* p);
+    template<typename T1, typename T2> friend constexpr bool celinalg::utils::expression_reference_check_state_invalidation(const T1* self, const T2* p);
 
     template<typename Element, typename index_picker> requires(container<Element> && expression_participant<Element>) friend class detail::linear_element_iterator;
     using iterator = detail::linear_element_iterator<MatrixScalarProductExpression>;
@@ -269,7 +271,7 @@ public:
 private:
     std::conditional_t<M1::is_temporary, M1, M1&> m1;
     std::conditional_t<M2::is_temporary, M2, M2&> m2;
-    template<typename T1, typename T2> friend constexpr bool linalg::utils::expression_reference_check_state_invalidation(const T1* self, const T2* p);
+    template<typename T1, typename T2> friend constexpr bool celinalg::utils::expression_reference_check_state_invalidation(const T1* self, const T2* p);
 
     template<typename Element, typename index_picker> requires(container<Element> && expression_participant<Element>) friend class detail::linear_element_iterator;
     friend class detail::MatrixView<MatrixCrossProductExpression>;

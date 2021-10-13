@@ -3,6 +3,8 @@
 #include <cmath>
 #include <type_traits>
 #include <numbers>
+
+#if defined(CELINALG_USE_GCEM) && CELINALG_USE_GCEM
 #include <gcem.hpp>
 
 #define MATH_HPP_DECLARE_GCEM_FUNCTION(NAME)                                 \
@@ -13,6 +15,9 @@ inline constexpr auto NAME(auto&&... args) noexcept {                   \
         return ::std::NAME(std::forward<decltype(args)>(args)...);      \
     }                                                                   \
 }
+#else
+#define MATH_HPP_DECLARE_GCEM_FUNCTION(NAME) MATH_HPP_DECLARE_STD_FUNCTION(NAME)
+#endif
 
 #define MATH_HPP_DECLARE_STD_FUNCTION(NAME)                 \
 inline auto NAME(auto&&... args) noexcept {                     \
@@ -282,5 +287,4 @@ namespace math {
 }
 
 #undef MATH_HPP_DECLARE_GCEM_FUNCTION
-#undef MATH_HPP_DECLARE_GCEM_FUNCTION_2
-#undef MATH_HPP_DECLARE_GCEM_FUNCTION_3
+#undef MATH_HPP_DECLARE_STD_FUNCTION
